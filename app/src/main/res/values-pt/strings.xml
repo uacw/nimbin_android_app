@@ -1,0 +1,119 @@
+<resources>
+    <string name="app_name">NimBin</string>
+
+    <!-- Login Screen Strings -->
+    <string name="login_screen_title">Tela de login</string>
+    <string name="login_email_label">Email</string>
+    <string name="login_password_label">Senha</string>
+    <string name="login_button_text">Entrar</string>
+    <string name="login_go_to_register_text">Ir para registro</string>
+    <string name="login_in_progress">Entrando…</string>
+    <string name="login_successful">Login bem-sucedido!</string>
+    <string name="login_error_occurred_default">Ocorreu um erro</string>
+    <string name="login_validation_email_empty">O email não pode estar vazio</string>
+    <string name="login_validation_invalid_email_format">Formato de email inválido</string>
+    <string name="login_validation_password_empty">A senha não pode estar vazia</string>
+    <string name="login_error_token_missing">Login bem-sucedido mas o token está ausente.</string>
+
+    <!-- Auth Repository Error Strings (currently unused in UI) -->
+    <string name="auth_error_invalid_credentials">Credenciais inválidas</string>
+    <string name="auth_error_registration_failed">O registro falhou. Use um email válido e uma senha de pelo menos 6 caracteres.</string>
+
+    <!-- Home Screen Strings -->
+    <string name="home_screen_title">Início</string>
+    <string name="home_logout_button">Sair</string>
+    <string name="home_end_reached_label">Não há mais notas</string>
+
+    <!-- Bottom Navigation Strings -->
+    <string name="bottom_nav_home">Início</string>
+    <string name="bottom_nav_create">Nova</string>
+    <string name="bottom_nav_profile">Perfil</string>
+    <string name="bottom_nav_home_cd">Navegar para início</string>
+    <string name="bottom_nav_create_cd">Criar nova nota</string>
+    <string name="bottom_nav_profile_cd">Abrir perfil</string>
+
+    <!-- Create Note Strings -->
+    <string name="create_note_title">Criar nota</string>
+    <string name="note_title_label">Título</string>
+    <string name="note_content_label">Conteúdo</string>
+    <string name="note_create_action">Criar</string>
+
+    <!-- Profile Strings -->
+    <string name="profile_title">Perfil</string>
+    <string name="profile_placeholder_info">As informações do perfil aparecerão aqui</string>
+    <string name="profile_logout">Sair</string>
+    <string name="profile_menu_edit_profile">Editar perfil</string>
+    <string name="profile_menu_my_pastes">Minhas notas</string>
+    <string name="profile_retry">Tentar novamente</string>
+    <string name="profile_public_only_count">Públicas: %1$d</string>
+    <string name="profile_total_pastes_count">Total: %1$d</string>
+    <string name="profile_public_total_counts">Públicas: %1$d, total: %2$d</string>
+    <string name="profile_edit_title">Editar perfil</string>
+    <string name="profile_edit_save">Salvar</string>
+    <string name="profile_edit_cancel">Cancelar</string>
+    <string name="profile_edit_username_label">Nome de usuário</string>
+    <string name="profile_edit_display_name_label">Nome de exibição</string>
+    <string name="profile_edit_error_invalid_username">Nome de usuário inválido</string>
+    <string name="profile_edit_error_display_name_blank">O nome de exibição não pode estar vazio</string>
+
+    <!-- My Pastes Strings -->
+    <string name="my_pastes_title">Minhas notas</string>
+    <string name="my_pastes_empty">Você não tem notas</string>
+    <string name="my_pastes_error">Erro: %1$s</string>
+    <string name="my_pastes_retry">Tentar novamente</string>
+    <string name="my_pastes_filter_all">Todas</string>
+    <string name="my_pastes_filter_public">Públicas</string>
+    <string name="my_pastes_filter_unlisted">Por link</string>
+    <string name="my_pastes_filter_private">Privadas</string>
+    <string name="my_pastes_login_required">É necessário fazer login para ver suas notas</string>
+    <string name="my_pastes_reset_filter">Redefinir filtro</string>
+
+    <!-- Public Pastes Strings -->
+    <string name="public_pastes_empty">Não há notas públicas</string>
+    <string name="public_pastes_error">Falha ao carregar: %1$s</string>
+    <string name="public_pastes_retry">Tentar novamente</string>
+    <string name="public_pastes_refresh">Atualizar</string>
+
+    <!-- Create Note Visibility Strings -->
+    <string name="create_note_visibility_label">Visibilidade</string>
+    <string name="visibility_public">Pública</string>
+    <string name="visibility_unlisted">Por link</string>
+    <string name="visibility_private">Privada</string>
+    <string name="create_note_create_in_progress">Criando…</string>
+    <string name="create_note_success">Nota criada</string>
+    <string name="create_note_error">Erro: %1$s</string>
+
+    <!-- Paste Detail Strings -->
+    <string name="paste_detail_loading">Carregando…</string>
+    <string name="paste_detail_error">Falha ao carregar: %1$s</string>
+    <string name="paste_detail_visibility">Visibilidade: %1$s</string>
+    <string name="paste_detail_created">Criado: %1$s</string>
+    <string name="paste_detail_views">Visualizações: %1$d</string>
+    <string name="paste_detail_nav_back_cd">Voltar</string>
+    <string name="paste_detail_refresh_cd">Atualizar</string>
+    <string name="paste_detail_id_blank">O ID está vazio</string>
+
+    <!-- Register Screen Strings -->
+    <string name="register_screen_title">Registro</string>
+    <string name="register_username_label">Nome de usuário</string>
+    <string name="register_email_label">Email</string>
+    <string name="register_password_label">Senha</string>
+    <string name="register_confirm_password_label">Confirmar senha</string>
+    <string name="register_button_text">Registrar-se</string>
+    <string name="register_go_to_login_text">Ir para login</string>
+    <string name="register_successful_toast">Registro bem-sucedido!</string>
+    <string name="register_failed_toast_with_reason">Registro falhou: %1$s</string>
+
+    <!-- User Profile Strings -->
+    <string name="user_profile_title">Perfil</string>
+    <string name="user_profile_retry">Tentar novamente</string>
+    <string name="user_profile_end_reached">Fim da lista</string>
+    <string name="user_profile_public_total_counts">Públicas: %1$d, total: %2$d</string>
+
+    <!-- Error Messages -->
+    <string name="error_not_authorized">Não autorizado</string>
+    <string name="error_username_taken">Nome de usuário já está em uso</string>
+    <string name="error_profile_validation">Erro de validação do perfil</string>
+    <string name="error_authentication_required">Autenticação necessária</string>
+    <string name="create_note_fields_required">Título e conteúdo não podem estar vazios</string>
+</resources>

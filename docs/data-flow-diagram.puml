@@ -1,0 +1,102 @@
+@startuml NimBin Data Flow Diagram
+!theme plain
+skinparam backgroundColor white
+skinparam actorStyle awesome
+
+title NimBin Android App - Data Flow & Interactions
+
+actor User
+participant "Compose UI" as UI
+participant "ViewModel" as VM
+participant "Use Case" as UC
+participant "Repository" as REPO
+participant "API Client" as API
+participant "Backend API" as BACKEND
+database "Local Storage" as STORAGE
+
+== Authentication Flow ==
+User -> UI: Login (email, password)
+UI -> VM: login(email, password)
+VM -> UC: LoginUseCase.invoke()
+UC -> REPO: AuthRepository.login()
+REPO -> API: NimbinApiClient.login()
+API -> BACKEND: POST /api/auth/login
+BACKEND --> API: AuthResponseDto + JWT
+API --> REPO: ApiResult.Success(AuthData)
+REPO -> STORAGE: Save JWT token
+REPO --> UC: AuthResult.Success
+UC --> VM: Flow<AuthResult>
+VM --> UI: Update UI state
+UI --> User: Navigate to Main Screen
+
+== Create Paste Flow ==
+User -> UI: Create Paste (title, content, visibility)
+UI -> VM: createPaste(request)
+VM -> UC: CreatePasteUseCase.invoke()
+UC -> REPO: PastesRepository.createPaste()
+REPO -> STORAGE: Get JWT token
+STORAGE --> REPO: JWT token
+REPO -> API: NimbinApiClient.createPaste()
+API -> BACKEND: POST /api/pastes + JWT
+BACKEND --> API: PasteDto
+API --> REPO: ApiResult.Success(PasteDto)
+REPO --> UC: PastesResult.Success
+UC --> VM: Flow<PastesResult>
+VM --> UI: Update pastes list
+UI --> User: Show success message
+
+== Load Public Pastes Flow ==
+User -> UI: Open Pastes Screen
+UI -> VM: loadPastes()
+VM -> UC: GetPastesUseCase.invoke()
+UC -> REPO: PastesRepository.getPublicPastes()
+REPO -> API: NimbinApiClient.getPublicPastes()
+API -> BACKEND: GET /api/pastes/public
+BACKEND --> API: List<PasteDto>
+API --> REPO: ApiResult.Success(List<PasteDto>)
+REPO --> UC: PastesResult.Success
+UC --> VM: Flow<PastesResult>
+VM --> UI: Display pastes list
+UI --> User: Show pastes
+
+== Profile Management Flow ==
+User -> UI: View Profile
+UI -> VM: loadProfile()
+VM -> UC: GetProfileUseCase.invoke()
+UC -> REPO: ProfileRepository.getMyProfile()
+REPO -> STORAGE: Get JWT token
+STORAGE --> REPO: JWT token
+REPO -> API: NimbinApiClient.getCurrentUser()
+API -> BACKEND: GET /api/users/profile + JWT
+BACKEND --> API: UserDto
+API --> REPO: ApiResult.Success(UserDto)
+REPO --> UC: ProfileResult.Success
+UC --> VM: Flow<ProfileResult>
+VM --> UI: Display profile data
+UI --> User: Show profile
+
+== Error Handling Flow ==
+API -> BACKEND: Any API Request
+BACKEND --> API: HTTP Error (4xx/5xx)
+API --> REPO: ApiResult.Error(message, code)
+REPO --> UC: Result.Error
+UC --> VM: Flow<Result.Error>
+VM --> UI: Update error state
+UI --> User: Show error message
+
+note over UI, VM
+State management через
+StateFlow/SharedFlow
+end note
+
+note over REPO, API
+Repository pattern изолирует
+бизнес-логику от деталей API
+end note
+
+note over API, BACKEND
+Автоматическая обработка JWT,
+retry логика, error handling
+end note
+
+@enduml

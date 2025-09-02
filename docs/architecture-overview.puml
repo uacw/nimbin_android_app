@@ -1,0 +1,94 @@
+@startuml NimBin Architecture Overview
+!theme plain
+skinparam backgroundColor white
+skinparam componentStyle uml2
+
+title NimBin Android App - Clean Architecture Overview
+
+package "Presentation Layer" as presentation {
+    [Jetpack Compose UI] as compose
+    [ViewModels] as viewmodels
+    [Navigation Component] as navigation
+    [MainActivity] as activity
+}
+
+package "Domain Layer" as domain {
+    [Use Cases] as usecases
+    [Domain Models] as models
+    [Repository Interfaces] as repo_interfaces
+    [Business Logic] as business
+}
+
+package "Data Layer" as data {
+    [Repository Implementations] as repo_impl
+    [API Client] as api
+    [Local Storage] as storage
+    [Data Sources] as datasources
+}
+
+package "Shared Module" as shared {
+    [DTO Models] as dto
+    [API Contracts] as contracts
+    [Utilities] as utils
+}
+
+package "External" as external {
+    [Backend API] as backend
+    [Android System] as system
+}
+
+' Connections within layers
+compose --> viewmodels
+viewmodels --> navigation
+activity --> compose
+
+usecases --> models
+usecases --> repo_interfaces
+business --> models
+
+repo_impl --> api
+repo_impl --> storage
+api --> datasources
+storage --> datasources
+
+' Cross-layer connections
+viewmodels --> usecases
+usecases --> repo_impl
+repo_impl --> dto
+api --> contracts
+api --> backend
+storage --> system
+
+' Dependencies
+shared --> data
+shared --> domain
+
+note right of presentation
+  • Jetpack Compose для UI
+  • MVVM pattern
+  • Reactive state management
+  • Navigation Component
+end note
+
+note right of domain
+  • Clean business logic
+  • Platform independent
+  • Repository pattern
+  • Use case pattern
+end note
+
+note right of data
+  • API integration
+  • Local caching
+  • Data mapping
+  • Error handling
+end note
+
+note right of shared
+  • Cross-platform DTOs
+  • API constants
+  • Shared utilities
+  • Type-safe models
+end note
+
+@enduml

@@ -1,0 +1,199 @@
+@startuml NimBin Class Diagram - Core Components
+!theme plain
+skinparam backgroundColor white
+skinparam classAttributeIconSize 0
+
+title NimBin Android App - Core Classes Structure
+
+package "Presentation Layer" {
+    class MainActivity {
+        + onCreate()
+        + setContent()
+    }
+
+    class MainViewModel {
+        - _uiState: MutableStateFlow<MainUiState>
+        + uiState: StateFlow<MainUiState>
+        + checkAuthState()
+        + logout()
+    }
+
+    abstract class BaseViewModel<T> {
+        # _uiState: MutableStateFlow<T>
+        + uiState: StateFlow<T>
+        # handleError(error: String)
+    }
+
+    class AuthViewModel {
+        - loginUseCase: LoginUseCase
+        - registerUseCase: RegisterUseCase
+        + login(email: String, password: String)
+        + register(username: String, email: String, password: String)
+    }
+
+    class PastesViewModel {
+        - getPastesUseCase: GetPastesUseCase
+        - createPasteUseCase: CreatePasteUseCase
+        + loadPastes()
+        + createPaste(request: CreatePasteRequest)
+    }
+
+    class ProfileViewModel {
+        - getProfileUseCase: GetProfileUseCase
+        - updateProfileUseCase: UpdateProfileUseCase
+        + loadProfile()
+        + updateProfile(username: String?, displayName: String?)
+    }
+}
+
+package "Domain Layer" {
+    interface AuthRepository {
+        + login(email: String, password: String): Flow<AuthResult<AuthData>>
+        + register(username: String, email: String, password: String): Flow<AuthResult<AuthData>>
+        + logout(): Flow<AuthResult<Unit>>
+    }
+
+    interface PastesRepository {
+        + getPublicPastes(page: Int, limit: Int): Flow<PastesResult<List<PasteData>>>
+        + createPaste(request: CreatePasteRequest): Flow<PastesResult<PasteData>>
+        + getPaste(id: String): Flow<PastesResult<PasteData>>
+    }
+
+    interface ProfileRepository {
+        + getMyProfile(token: String): Flow<ProfileResult<UserProfileData>>
+        + getUserProfile(userId: String): Flow<ProfileResult<UserProfileData>>
+        + updateProfile(token: String, username: String?, displayName: String?): Flow<ProfileResult<UserData>>
+    }
+
+    class LoginUseCase {
+        - authRepository: AuthRepository
+        + invoke(email: String, password: String): Flow<AuthResult<AuthData>>
+    }
+
+    class GetPastesUseCase {
+        - pastesRepository: PastesRepository
+        + invoke(page: Int, limit: Int): Flow<PastesResult<List<PasteData>>>
+    }
+
+    class GetProfileUseCase {
+        - profileRepository: ProfileRepository
+        + invoke(token: String): Flow<ProfileResult<UserProfileData>>
+    }
+}
+
+package "Data Layer" {
+    class AuthRepositoryImpl {
+        - apiClient: NimbinApiClient
+        + login(email: String, password: String): Flow<AuthResult<AuthData>>
+        + register(username: String, email: String, password: String): Flow<AuthResult<AuthData>>
+    }
+
+    class PastesRepositoryImpl {
+        - apiClient: NimbinApiClient
+        + getPublicPastes(page: Int, limit: Int): Flow<PastesResult<List<PasteData>>>
+        + createPaste(request: CreatePasteRequest): Flow<PastesResult<PasteData>>
+    }
+
+    class ProfileRepositoryImpl {
+        - apiClient: NimbinApiClient
+        + getMyProfile(token: String): Flow<ProfileResult<UserProfileData>>
+        + updateProfile(token: String, username: String?, displayName: String?): Flow<ProfileResult<UserData>>
+    }
+
+    class NimbinApiClientImpl {
+        - client: HttpClient
+        - config: ApiConfig
+        - tokenProvider: TokenProvider
+        + login(request: LoginRequestDto): ApiResult<AuthResponseDto>
+        + createPaste(request: CreatePasteRequestDto): ApiResult<PasteDto>
+        + getUserProfile(userId: String): ApiResult<UserProfileDto>
+        - safe<T>(block: suspend () -> T): ApiResult<T>
+    }
+
+    interface TokenProvider {
+        + getToken(): String?
+    }
+
+    class TokenManager {
+        - sharedPreferences: SharedPreferences
+        + saveToken(token: String)
+        + getToken(): String?
+        + clearToken()
+    }
+}
+
+package "Shared Module" {
+    class PasteDto {
+        + id: String
+        + title: String
+        + content: String
+        + userId: String?
+        + authorUsername: String?
+        + visibility: PasteVisibility
+        + createdAt: String
+    }
+
+    class UserDto {
+        + id: String
+        + username: String
+        + displayName: String?
+        + email: String
+        + createdAt: String
+    }
+
+    class LoginRequestDto {
+        + email: String
+        + password: String
+    }
+
+    class CreatePasteRequestDto {
+        + title: String
+        + content: String
+        + visibility: PasteVisibility
+        + language: String
+    }
+
+    enum PasteVisibility {
+        PUBLIC
+        UNLISTED
+        PRIVATE
+    }
+
+    abstract class "ApiResult<T>" {
+        + Success<T>(data: T)
+        + Error(message: String, code: Int?)
+    }
+}
+
+' Inheritance relationships
+BaseViewModel <|-- AuthViewModel
+BaseViewModel <|-- PastesViewModel
+BaseViewModel <|-- ProfileViewModel
+
+' Implementation relationships
+AuthRepository <|.. AuthRepositoryImpl
+PastesRepository <|.. PastesRepositoryImpl
+ProfileRepository <|.. ProfileRepositoryImpl
+TokenProvider <|.. TokenManager
+
+' Dependency relationships
+AuthViewModel --> LoginUseCase
+PastesViewModel --> GetPastesUseCase
+ProfileViewModel --> GetProfileUseCase
+
+LoginUseCase --> AuthRepository
+GetPastesUseCase --> PastesRepository
+GetProfileUseCase --> ProfileRepository
+
+AuthRepositoryImpl --> NimbinApiClientImpl
+PastesRepositoryImpl --> NimbinApiClientImpl
+ProfileRepositoryImpl --> NimbinApiClientImpl
+
+NimbinApiClientImpl --> TokenProvider
+NimbinApiClientImpl --> LoginRequestDto
+NimbinApiClientImpl --> CreatePasteRequestDto
+NimbinApiClientImpl --> PasteDto
+NimbinApiClientImpl --> UserDto
+NimbinApiClientImpl --> ApiResult
+
+@enduml

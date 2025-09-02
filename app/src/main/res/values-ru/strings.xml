@@ -1,0 +1,119 @@
+<resources>
+    <string name="app_name">NimBin</string>
+
+    <!-- Login Screen Strings -->
+    <string name="login_screen_title">Экран входа</string>
+    <string name="login_email_label">Email</string>
+    <string name="login_password_label">Пароль</string>
+    <string name="login_button_text">Войти</string>
+    <string name="login_go_to_register_text">Перейти к регистрации</string>
+    <string name="login_in_progress">Вход…</string>
+    <string name="login_successful">Вход выполнен!</string>
+    <string name="login_error_occurred_default">Произошла ошибка</string>
+    <string name="login_validation_email_empty">Email не может быть пустым</string>
+    <string name="login_validation_invalid_email_format">Неверный формат email</string>
+    <string name="login_validation_password_empty">Пароль не может быть пустым</string>
+    <string name="login_error_token_missing">Вход выполнен, но токен отсутствует.</string>
+
+    <!-- Auth Repository Error Strings (currently unused in UI) -->
+    <string name="auth_error_invalid_credentials">Неверные учетные данные</string>
+    <string name="auth_error_registration_failed">Регистрация не удалась. Используйте действительный email и пароль не менее 6 символов.</string>
+
+    <!-- Home Screen Strings -->
+    <string name="home_screen_title">Главная</string>
+    <string name="home_logout_button">Выйти</string>
+    <string name="home_end_reached_label">Больше заметок нет</string>
+
+    <!-- Bottom Navigation Strings -->
+    <string name="bottom_nav_home">Лента</string>
+    <string name="bottom_nav_create">Создать</string>
+    <string name="bottom_nav_profile">Профиль</string>
+    <string name="bottom_nav_home_cd">Перейти на главную</string>
+    <string name="bottom_nav_create_cd">Создать новую заметку</string>
+    <string name="bottom_nav_profile_cd">Открыть профиль</string>
+
+    <!-- Create Note Strings -->
+    <string name="create_note_title">Создание заметки</string>
+    <string name="note_title_label">Заголовок</string>
+    <string name="note_content_label">Содержимое</string>
+    <string name="note_create_action">Создать</string>
+
+    <!-- Profile Strings -->
+    <string name="profile_title">Профиль</string>
+    <string name="profile_placeholder_info">Информация профиля появится здесь</string>
+    <string name="profile_logout">Выйти</string>
+    <string name="profile_menu_edit_profile">Редактировать профиль</string>
+    <string name="profile_menu_my_pastes">Мои заметки</string>
+    <string name="profile_retry">Повторить</string>
+    <string name="profile_public_only_count">Публичных: %1$d</string>
+    <string name="profile_total_pastes_count">Всего: %1$d</string>
+    <string name="profile_public_total_counts">Публичных: %1$d, всего: %2$d</string>
+    <string name="profile_edit_title">Редактировать профиль</string>
+    <string name="profile_edit_save">Сохранить</string>
+    <string name="profile_edit_cancel">Отмена</string>
+    <string name="profile_edit_username_label">Имя пользователя</string>
+    <string name="profile_edit_display_name_label">Отображаемое имя</string>
+    <string name="profile_edit_error_invalid_username">Некорректное имя пользователя</string>
+    <string name="profile_edit_error_display_name_blank">Отображаемое имя не может быть пустым</string>
+
+    <!-- My Pastes Strings -->
+    <string name="my_pastes_title">Мои заметки</string>
+    <string name="my_pastes_empty">У вас нет заметок</string>
+    <string name="my_pastes_error">Ошибка: %1$s</string>
+    <string name="my_pastes_retry">Повторить</string>
+    <string name="my_pastes_filter_all">Все</string>
+    <string name="my_pastes_filter_public">Публичные</string>
+    <string name="my_pastes_filter_unlisted">По ссылке</string>
+    <string name="my_pastes_filter_private">Приватные</string>
+    <string name="my_pastes_login_required">Для просмотра ваших заметок необходимо войти в систему</string>
+    <string name="my_pastes_reset_filter">Сбросить фильтр</string>
+
+    <!-- Public Pastes Strings -->
+    <string name="public_pastes_empty">Нет публичных заметок</string>
+    <string name="public_pastes_error">Ошибка загрузки: %1$s</string>
+    <string name="public_pastes_retry">Повторить</string>
+    <string name="public_pastes_refresh">Обновить</string>
+
+    <!-- Create Note Visibility Strings -->
+    <string name="create_note_visibility_label">Видимость</string>
+    <string name="visibility_public">Публичная</string>
+    <string name="visibility_unlisted">По ссылке</string>
+    <string name="visibility_private">Приватная</string>
+    <string name="create_note_create_in_progress">Создание…</string>
+    <string name="create_note_success">Заметка создана</string>
+    <string name="create_note_error">Ошибка: %1$s</string>
+
+    <!-- Paste Detail Strings -->
+    <string name="paste_detail_loading">Загрузка…</string>
+    <string name="paste_detail_error">Ошибка загрузки: %1$s</string>
+    <string name="paste_detail_visibility">Видимость: %1$s</string>
+    <string name="paste_detail_created">Создано: %1$s</string>
+    <string name="paste_detail_views">Просмотров: %1$d</string>
+    <string name="paste_detail_nav_back_cd">Назад</string>
+    <string name="paste_detail_refresh_cd">Обновить</string>
+    <string name="paste_detail_id_blank">ID пуст</string>
+
+    <!-- Register Screen Strings -->
+    <string name="register_screen_title">Регистрация</string>
+    <string name="register_username_label">Имя пользователя</string>
+    <string name="register_email_label">Email</string>
+    <string name="register_password_label">Пароль</string>
+    <string name="register_confirm_password_label">Подтвердите пароль</string>
+    <string name="register_button_text">Зарегистрироваться</string>
+    <string name="register_go_to_login_text">Перейти ко входу</string>
+    <string name="register_successful_toast">Регистрация успешна!</string>
+    <string name="register_failed_toast_with_reason">Регистрация не удалась: %1$s</string>
+
+    <!-- User Profile Strings -->
+    <string name="user_profile_title">Профиль</string>
+    <string name="user_profile_retry">Повторить</string>
+    <string name="user_profile_end_reached">Конец списка</string>
+    <string name="user_profile_public_total_counts">Публичных: %1$d, всего: %2$d</string>
+
+    <!-- Error Messages -->
+    <string name="error_not_authorized">Не авторизован</string>
+    <string name="error_username_taken">Имя пользователя уже занято</string>
+    <string name="error_profile_validation">Ошибка валидации профиля</string>
+    <string name="error_authentication_required">Требуется авторизация</string>
+    <string name="create_note_fields_required">Заголовок и содержимое не могут быть пустыми</string>
+</resources>

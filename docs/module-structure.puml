@@ -1,0 +1,107 @@
+@startuml NimBin Module Structure
+!theme plain
+skinparam backgroundColor white
+skinparam packageStyle rectangle
+
+title NimBin Android App - Module Structure & Dependencies
+
+package "App Module" {
+    package "Presentation" {
+        [MainActivity]
+        [ViewModels]
+        [Compose UI]
+        [Navigation]
+        [Theme]
+        [Components]
+    }
+
+    package "Domain" {
+        [Use Cases]
+        [Domain Models]
+        [Repository Interfaces]
+        [Business Rules]
+    }
+
+    package "Data" {
+        [Repository Impl]
+        [API Client Impl]
+        [Local Storage]
+        [Preferences]
+    }
+
+    package "DI (Hilt)" {
+        [DI App Module]
+        [Network Module]
+        [Repository Module]
+        [Use Case Module]
+    }
+}
+
+package "Shared Module" {
+    [DTO Models]
+    [API Interfaces]
+    [API Constants]
+    [Utilities]
+    [Result Classes]
+}
+
+cloud "External Dependencies" {
+    [Jetpack Compose]
+    [Hilt/Dagger]
+    [Ktor Client]
+    [Kotlinx Serialization]
+    [Navigation Component]
+    [Material Design 3]
+}
+
+cloud "Backend Services" {
+    [Nimbin Backend API]
+    [PostgreSQL Database]
+}
+
+' Module dependencies
+[App Module] --> [Shared Module]
+[Data] --> [DTO Models]
+[Data] --> [API Interfaces]
+[Repository Impl] --> [API Client Impl]
+
+' External dependencies
+[Presentation] --> [Jetpack Compose]
+[Presentation] --> [Navigation Component]
+[Presentation] --> [Material Design 3]
+[DI (Hilt)] --> [Hilt/Dagger]
+[API Client Impl] --> [Ktor Client]
+[DTO Models] --> [Kotlinx Serialization]
+
+' Backend connection
+[API Client Impl] --> [Nimbin Backend API]
+[Nimbin Backend API] --> [PostgreSQL Database]
+
+' Internal dependencies
+[ViewModels] --> [Use Cases]
+[Use Cases] --> [Repository Interfaces]
+[Repository Interfaces] <|.. [Repository Impl]
+[Repository Impl] --> [API Client Impl]
+[Repository Impl] --> [Local Storage]
+
+note right of [App Module]
+  Main Android application module
+  Contains all business logic
+  and UI components
+end note
+
+note right of [Shared Module]
+  Platform-independent module
+  Shared between Android and
+  potential iOS implementation
+end note
+
+note bottom of [External Dependencies]
+  Modern Android tech stack:
+  • Jetpack Compose for UI
+  • Hilt for DI
+  • Ktor for networking
+  • Material Design 3 for theming
+end note
+
+@enduml

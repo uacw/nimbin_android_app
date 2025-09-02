@@ -1,0 +1,81 @@
+@startuml NimBin Navigation Flow
+!theme plain
+skinparam backgroundColor white
+skinparam state {
+  BackgroundColor lightblue
+  BorderColor darkblue
+}
+
+title NimBin Android App - Navigation & Screen Flow
+
+[*] --> SplashScreen
+
+state "Authentication Flow" as AuthFlow {
+  SplashScreen --> LoginScreen : Not authenticated
+  LoginScreen --> RegisterScreen : "Create Account"
+  RegisterScreen --> LoginScreen : "Back to Login"
+  LoginScreen --> MainScreen : Login successful
+  RegisterScreen --> MainScreen : Register successful
+}
+
+state "Main Application Flow" as MainFlow {
+  state MainScreen {
+    state "Bottom Navigation" as BottomNav {
+      [*] --> HomeTab
+      HomeTab --> PastesTab
+      PastesTab --> ProfileTab
+      ProfileTab --> HomeTab
+
+      HomeTab : Public Pastes List
+      PastesTab : My Pastes List
+      ProfileTab : User Profile
+    }
+  }
+
+  MainScreen --> CreatePasteScreen : FAB clicked
+  CreatePasteScreen --> MainScreen : Paste created/cancelled
+
+  MainScreen --> PasteDetailScreen : Paste clicked
+  PasteDetailScreen --> MainScreen : Back pressed
+
+  MainScreen --> ProfileEditScreen : Edit Profile
+  ProfileEditScreen --> MainScreen : Profile updated/cancelled
+
+  MainScreen --> UserProfileScreen : Author clicked
+  UserProfileScreen --> MainScreen : Back pressed
+  UserProfileScreen --> PasteDetailScreen : User's paste clicked
+}
+
+state "Error & Loading States" as ErrorStates {
+  state LoadingState
+  state ErrorState
+  state EmptyState
+
+  LoadingState --> ErrorState : Request failed
+  ErrorState --> LoadingState : Retry
+  LoadingState --> EmptyState : No data
+  EmptyState --> LoadingState : Refresh
+}
+
+MainFlow --> AuthFlow : Logout / Token expired
+AuthFlow --> [*] : App closed
+
+note right of AuthFlow
+  JWT token-based authentication
+  Automatic token validation
+  Secure credential storage
+end note
+
+note right of MainFlow
+  Bottom navigation with 3 tabs
+  Deep linking support
+  State preservation
+end note
+
+note bottom of ErrorStates
+  Comprehensive error handling
+  Loading indicators
+  Empty state management
+end note
+
+@enduml
