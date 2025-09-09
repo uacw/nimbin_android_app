@@ -62,13 +62,7 @@ class ProfileViewModel @Inject constructor(
                 when (res) {
                     is ProfileResult.Loading -> profileState = MyProfileUiState.Loading
                     is ProfileResult.Error -> {
-                        // Проверяем на истечение токена
-                        if (isTokenExpiredError(res.message)) {
-                            authRepository.clearAuthToken()
-                            profileState = MyProfileUiState.Error("Session expired. Please log in again.")
-                        } else {
-                            profileState = MyProfileUiState.Error(res.message)
-                        }
+                        profileState = MyProfileUiState.Error(res.message)
                     }
                     is ProfileResult.Success -> profileState = MyProfileUiState.Data(res.data)
                 }
@@ -98,29 +92,17 @@ class ProfileViewModel @Inject constructor(
                 when (res) {
                     is ProfileResult.Loading -> {}
                     is ProfileResult.Error -> {
-                        // Проверяем на истечение токена
-                        if (isTokenExpiredError(res.message)) {
-                            authRepository.clearAuthToken()
-                            profileState = MyProfileUiState.Error("Session expired. Please log in again.")
-                        } else {
-                            val msg = when (res.code) {
-                                409 -> stringProvider.getString(R.string.error_username_taken)
-                                400 -> stringProvider.getString(R.string.error_profile_validation)
-                                else -> res.message
-                            }
-                            profileState = MyProfileUiState.Error(msg)
+                        val msg = when (res.code) {
+                            409 -> stringProvider.getString(R.string.error_username_taken)
+                            400 -> stringProvider.getString(R.string.error_profile_validation)
+                            else -> res.message
                         }
+                        profileState = MyProfileUiState.Error(msg)
                     }
                     is ProfileResult.Success -> loadProfile()
                 }
             }
         }
-    }
-
-    private fun isTokenExpiredError(message: String): Boolean {
-        return message.contains("Token is not valid", ignoreCase = true) ||
-               message.contains("token expired", ignoreCase = true) ||
-               message.contains("not authorized", ignoreCase = true)
     }
 
     fun resetLogout() {

@@ -12,10 +12,12 @@ import tech.nimbus.shared.dto.request.UpdateProfileRequestDto
 import tech.nimbus.shared.utils.ApiResult
 import javax.inject.Inject
 import javax.inject.Singleton
+import tech.nimbus.nimbin.core.session.SessionManager
 
 @Singleton
 class ProfileRepositoryImpl @Inject constructor(
-    private val apiClient: NimbinApiClient
+    private val apiClient: NimbinApiClient,
+    private val sessionManager: SessionManager
 ) : ProfileRepository {
 
     override fun getMyProfile(token: String): Flow<ProfileResult<UserProfileDto>> = flow {
@@ -23,7 +25,10 @@ class ProfileRepositoryImpl @Inject constructor(
         // Используем правильный API endpoint для получения своего профиля со статистикой
         when (val result = apiClient.getMyProfile(token)) {
             is ApiResult.Success -> emit(ProfileResult.Success(result.data))
-            is ApiResult.Error -> emit(ProfileResult.Error(result.message, result.code))
+            is ApiResult.Error -> {
+                sessionManager.handleAuthError(result.message, result.code)
+                emit(ProfileResult.Error(result.message, result.code))
+            }
         }
     }
 
@@ -40,7 +45,10 @@ class ProfileRepositoryImpl @Inject constructor(
         val req = UpdateProfileRequestDto(username = username, displayName = displayName)
         when (val result = apiClient.updateProfile(token, req)) {
             is ApiResult.Success -> emit(ProfileResult.Success(result.data))
-            is ApiResult.Error -> emit(ProfileResult.Error(result.message, result.code))
+            is ApiResult.Error -> {
+                sessionManager.handleAuthError(result.message, result.code)
+                emit(ProfileResult.Error(result.message, result.code))
+            }
         }
     }
 

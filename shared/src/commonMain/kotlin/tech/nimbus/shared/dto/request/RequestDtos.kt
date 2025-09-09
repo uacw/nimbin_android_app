@@ -10,7 +10,7 @@ import tech.nimbus.shared.dto.PasteVisibility
  * @property content Текстовое содержимое заметки
  * @property visibility Тип видимости заметки
  * @property expiresAt Дата и время автоудаления заметки в ISO формате (null = бессрочная)
- * @property language Язык программирования для подсветки синтаксиса
+ * @property syntaxLanguage Язык программирования для подсветки синтаксиса
  */
 @Serializable
 data class CreatePasteRequestDto(
@@ -18,7 +18,20 @@ data class CreatePasteRequestDto(
     val content: String,
     val visibility: PasteVisibility = PasteVisibility.PUBLIC,
     val expiresAt: String? = null,
-    val language: String = "text"
+    val syntaxLanguage: String = "plaintext"
+)
+
+/**
+ * DTO для запроса обновления заметки (PUT).
+ * Все поля передаются целиком (не partial update), сервер использует ETag для предотвращения конфликтов.
+ */
+@Serializable
+data class UpdatePasteRequestDto(
+    val title: String,
+    val content: String,
+    val visibility: PasteVisibility = PasteVisibility.PUBLIC,
+    val expiresAt: String? = null,
+    val syntaxLanguage: String = "plaintext"
 )
 
 /**

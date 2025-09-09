@@ -76,24 +76,17 @@ class MyPastesViewModel @Inject constructor(
                 when (result) {
                     is PasteResult.Loading -> {}
                     is PasteResult.Error -> {
-                        // Проверяем на истечение токена
-                        if (isTokenExpiredError(result.message)) {
-                            authRepository.clearAuthToken()
-                            // Токен истек, показываем состояние "требуется вход"
-                            uiState = uiState.copy(
-                                tokenMissing = true,
+                        uiState = if (append) {
+                            uiState.copy(isLoadingMore = false, error = result.message)
+                        } else {
+                            // Если ошибка авторизации произойдет, SessionManager уже отправит событие, а здесь просто снимем флаги
+                            uiState.copy(
+                                tokenMissing = false,
                                 isRefreshing = false,
-                                isLoadingMore = false,
-                                error = null,
+                                error = result.message,
                                 items = emptyList(),
                                 filtered = emptyList()
                             )
-                        } else {
-                            uiState = if (append) {
-                                uiState.copy(isLoadingMore = false, error = result.message)
-                            } else {
-                                uiState.copy(isRefreshing = false, error = result.message, items = emptyList(), filtered = emptyList())
-                            }
                         }
                     }
                     is PasteResult.Success -> {
@@ -119,12 +112,6 @@ class MyPastesViewModel @Inject constructor(
         if (uiState.filter == filter) return
         val filtered = applyFilter(uiState.items, filter)
         uiState = uiState.copy(filter = filter, filtered = filtered)
-    }
-
-    private fun isTokenExpiredError(message: String): Boolean {
-        return message.contains("Token is not valid", ignoreCase = true) ||
-               message.contains("token expired", ignoreCase = true) ||
-               message.contains("not authorized", ignoreCase = true)
     }
 
     private fun applyFilter(list: List<PasteDto>, filter: MyPastesFilter): List<PasteDto> = when (filter) {

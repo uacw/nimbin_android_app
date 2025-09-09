@@ -13,7 +13,11 @@ object ApiEndpoints {
     const val PASTE_BY_ID = "$PASTES/{id}"
     const val PUBLIC_PASTES = "$PASTES/public"
     const val USER_PASTES = "$PASTES/my"
-    
+
+    // Utils endpoints
+    const val UTILS_BASE = "$API_BASE/utils"
+    const val SYNTAX_LANGUAGES = "$UTILS_BASE/syntax-languages"
+
     // Auth endpoints
     const val AUTH_BASE = "$API_BASE/auth"
     const val REGISTER = "$AUTH_BASE/register"
@@ -61,7 +65,9 @@ object ApiHeaders {
     const val AUTHORIZATION = "Authorization"
     const val CONTENT_TYPE = "Content-Type"
     const val ACCEPT = "Accept"
-    
+    const val ETAG = "ETag"
+    const val IF_MATCH = "If-Match"
+
     const val APPLICATION_JSON = "application/json"
     
     /**

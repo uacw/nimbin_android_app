@@ -78,8 +78,9 @@ object TestDataFactory {
         title: String = "Test Paste",
         content: String = "This is test content",
         visibility: PasteVisibility = PasteVisibility.PUBLIC,
-        language: String = "text",
+        syntaxLanguage: String = "plaintext",
         createdAt: String = "2025-01-20T12:00:00Z",
+        updatedAt: String = createdAt,
         userId: String? = null,
         authorUsername: String? = null,
         authorDisplayName: String? = null,
@@ -90,8 +91,9 @@ object TestDataFactory {
         title = title,
         content = content,
         visibility = visibility,
-        language = language,
+        syntaxLanguage = syntaxLanguage,
         createdAt = createdAt,
+        updatedAt = updatedAt,
         userId = userId,
         authorUsername = authorUsername,
         authorDisplayName = authorDisplayName,
@@ -103,12 +105,12 @@ object TestDataFactory {
         title: String = "Test Paste",
         content: String = "This is test content",
         visibility: PasteVisibility = PasteVisibility.PUBLIC,
-        language: String = "text"
+        syntaxLanguage: String = "plaintext"
     ) = CreatePasteRequestDto(
         title = title,
         content = content,
         visibility = visibility,
-        language = language
+        syntaxLanguage = syntaxLanguage
     )
 
     // === Lists ===

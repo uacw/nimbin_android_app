@@ -20,7 +20,8 @@ object ValidationUtils {
     
     // Supported languages for syntax highlighting
     val SUPPORTED_LANGUAGES = setOf(
-        "text", "kotlin", "java", "javascript", "typescript", "python", 
+        "plaintext", "text", // text оставлен для обратной совместимости
+        "kotlin", "java", "javascript", "typescript", "python",
         "cpp", "c", "csharp", "php", "ruby", "go", "rust", "swift",
         "html", "css", "xml", "json", "yaml", "sql", "bash", "powershell"
     )
@@ -55,7 +56,7 @@ object ValidationUtils {
     }
     
     /**
-     * Проверить валидность email
+     * Проверить ��алидность email
      */
     fun isValidEmail(email: String): Boolean {
         return email.contains("@") && email.contains(".") && email.length <= 255
@@ -69,7 +70,7 @@ object ValidationUtils {
     }
     
     /**
-     * Проверить поддерживается ли язык программирования
+     * Проверить поддерживается ли язык программи��ования
      */
     fun isValidLanguage(language: String): Boolean {
         return language.lowercase() in SUPPORTED_LANGUAGES
@@ -80,6 +81,10 @@ object ValidationUtils {
      */
     fun normalizeLanguage(language: String): String {
         val normalized = language.lowercase().trim()
-        return if (isValidLanguage(normalized)) normalized else "text"
+        return when {
+            normalized == "text" -> "plaintext"
+            isValidLanguage(normalized) -> if (normalized == "text") "plaintext" else normalized
+            else -> "plaintext"
+        }
     }
 }

@@ -60,7 +60,7 @@ interface TokenProvider {
  * - **ClientRequestException (4xx)** - ошибки валидации, авторизации
  * - **ServerResponseException (5xx)** - серверные ошибки
  * - **SerializationException** - проблемы парсинга JSON
- * - **Exception** - сетевые и прочие ошибки
+ * - **Exception** - сетевые и пр��чие ошибки
  *
  * ## Стратегии парсинга:
  * Поддерживает различные форматы ответов сервера:
@@ -139,11 +139,12 @@ class NimbinApiClientImpl(
         val msg = extractErrorMessage(body) ?: body ?: "HTTP ${e.response.status.value}"
         Timber.w(e, "Client error ${e.response.status.value}: $body")
 
-        // Проверяем на ошибки авторизации (истечение токена)
-        if (e.response.status.value == 401 || e.response.status.value == 403 ||
+        // Специальная обработка 412 конфликта версий (ETag)
+        if (e.response.status.value == 412) {
+            ApiResult.Error("Precondition Failed: ETag mismatch", 412)
+        } else if (e.response.status.value == 401 || e.response.status.value == 403 ||
             msg.contains("Token is not valid", ignoreCase = true) ||
             msg.contains("token expired", ignoreCase = true)) {
-            // Возвращаем специальную ошибку авторизации
             ApiResult.Error("Token is not valid or has expired", e.response.status.value)
         } else {
             ApiResult.Error(msg, e.response.status.value)
@@ -155,8 +156,6 @@ class NimbinApiClientImpl(
         ApiResult.Error(msg, e.response.status.value)
     } catch (e: SerializationException) {
         Timber.e(e, "Serialization error: ${e.message}")
-
-        // Проверяем, не связана ли SerializationException с истечением токена
         if (e.message?.contains("Token is not valid", ignoreCase = true) == true ||
             e.message?.contains("token expired", ignoreCase = true) == true) {
             ApiResult.Error("Token is not valid or has expired", 401)
@@ -228,9 +227,9 @@ class NimbinApiClientImpl(
         runCatching { json.decodeFromString(serializer<T>(), raw) }.getOrNull()
 
     /**
-     * Универсальная стратегия многов��риантного декодирования сущностей.
+     * Универсальная стратегия многовариантного декодирования сущностей.
      *
-     * Поддерживает различные форматы ответов backend сервиса:
+     * Поддерживает различные форматы ответов backend ��ервиса:
      * 1. Прямой объект (наиболее частый случай)
      * 2. Объект вложенный в envelope по ключам: data, result, payload, item, paste, user
      * 3. Структурированная ошибка API
@@ -260,7 +259,7 @@ class NimbinApiClientImpl(
      * Добавляет JWT токен авторизации к HTTP запросу при наличии.
      *
      * @param builder Строитель HTTP запроса
-     * @param explicitToken Явно переданный токен (приоритет над tokenProvider)
+     * @param explicitToken ��вно переданный токен (приоритет над tokenProvider)
      */
     private fun addAuthIfPresent(builder: HttpRequestBuilder, explicitToken: String? = null) {
         val token = explicitToken ?: tokenProvider.getToken()
@@ -279,10 +278,27 @@ class NimbinApiClientImpl(
     }
 
     override suspend fun getPaste(id: String): ApiResult<PasteDto> = safe {
-        val raw = client.get {
+        val response = client.get {
             url(full(ApiEndpoints.pasteById(id)))
             addAuthIfPresent(this)
-        }.bodyAsText()
+        }
+        val raw = response.bodyAsText()
+        val dto = decodeVariants<PasteDto>(raw) { listOf("paste", "data", "result", "payload") }
+        val etag = response.headers[ApiHeaders.ETAG]
+        if (etag != null && dto.etag != etag) dto.copy(etag = etag) else dto
+    }
+
+    override suspend fun updatePaste(id: String, request: UpdatePasteRequestDto, ifMatchEtag: String): ApiResult<PasteDto> = safe {
+        val response = client.put {
+            url(full(ApiEndpoints.pasteById(id)))
+            contentType(ContentType.Application.Json)
+            addAuthIfPresent(this)
+            headers {
+                append(ApiHeaders.IF_MATCH, ifMatchEtag)
+            }
+            setBody(request)
+        }
+        val raw = response.bodyAsText()
         decodeVariants<PasteDto>(raw) { listOf("paste", "data", "result", "payload") }
     }
 
@@ -302,6 +318,10 @@ class NimbinApiClientImpl(
             url(full(ApiEndpoints.pasteById(id)))
             addAuthIfPresent(this, token)
         }.body()
+    }
+
+    override suspend fun getSyntaxLanguages(): ApiResult<List<String>> = safe {
+        client.get { url(full(ApiEndpoints.SYNTAX_LANGUAGES)) }.body()
     }
 
     // === AUTH ===
@@ -335,7 +355,7 @@ class NimbinApiClientImpl(
             runCatching { json.decodeFromJsonElement(UserDto.serializer(), userNode) }.getOrNull()?.let { return@safe it }
         }
         extractApiError(raw)?.let { throw SerializationException(it.error) }
-        throw SerializationException("Не удалось распарсить пользовате��я: $raw")
+        throw SerializationException("Не удалось распарсить пользователя: $raw")
     }
 
     // === PROFILE ===

@@ -25,7 +25,7 @@ import javax.inject.Inject
  * - **Анонимные**: всегда публичные, нельзя редактировать или удалять
  *
  * ## Поддерживаемые языки подсветки:
- * text, javascript, typescript, kotlin, java, python, cpp, c, html, css, sql, json, xml, markdown
+ * plaintext, javascript, typescript, kotlin, java, python, cpp, c, html, css, sql, json, xml, markdown
  *
  * @see PasteRepository
  * @see PasteResult
@@ -51,8 +51,8 @@ class CreatePasteUseCase @Inject constructor(
      *                   - `PasteVisibility.PUBLIC` - видна всем пользователям
      *                   - `PasteVisibility.PRIVATE` - видна только автору (требует авторизации)
      *
-     * @param language Язык программирования для подсветки синтаксиса.
-     *                 По умолчанию "text" (без подсветки).
+     * @param syntaxLanguage Язык программирования для подсветки синтаксиса.
+     *                 По умолчанию "plaintext" (без подсветки).
      *                 Поддерживаемые значения: javascript, kotlin, java, python, cpp и др.
      *
      * @param expiresAt Время автоудаления заметки в формате ISO 8601 (UTC).
@@ -70,10 +70,10 @@ class CreatePasteUseCase @Inject constructor(
      * ```kotlin
      * // Создание публичной заметки с подсветкой Kotlin
      * createPasteUseCase(
-     *     title = "Пример Kotlin кода",
+     *     title = "Пример Kotlin к��да",
      *     content = "fun main() { println(\"Hello World!\") }",
      *     visibility = PasteVisibility.PUBLIC,
-     *     language = "kotlin"
+     *     syntaxLanguage = "kotlin"
      * ).collect { result ->
      *     when (result) {
      *         is PasteResult.Success -> navigateToPaste(result.data.id)
@@ -94,7 +94,7 @@ class CreatePasteUseCase @Inject constructor(
         title: String,
         content: String,
         visibility: PasteVisibility,
-        language: String = "text",
+        syntaxLanguage: String = "plaintext",
         expiresAt: String? = null
     ): Flow<PasteResult<PasteDto>> {
         require(title.isNotBlank() && title.length <= 255) {
@@ -104,6 +104,6 @@ class CreatePasteUseCase @Inject constructor(
             "Содержимое должно содержать 1-1,000,000 символов"
         }
 
-        return repository.createPaste(title, content, visibility, language, expiresAt)
+        return repository.createPaste(title, content, visibility, syntaxLanguage, expiresAt)
     }
 }

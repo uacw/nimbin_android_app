@@ -62,23 +62,9 @@ class CreateNoteViewModel @Inject constructor(
         createState = PasteResult.Loading
         viewModelScope.launch {
             createPasteUseCase(title, content, visibility).collectLatest { result ->
-                if (result is PasteResult.Error) {
-                    // Проверяем на истечение токена
-                    if (isTokenExpiredError(result.message)) {
-                        authRepository.clearAuthToken()
-                        createState = PasteResult.Error("Session expired. Please log in again.")
-                        return@collectLatest
-                    }
-                }
                 createState = result
             }
         }
-    }
-
-    private fun isTokenExpiredError(message: String): Boolean {
-        return message.contains("Token is not valid", ignoreCase = true) ||
-               message.contains("token expired", ignoreCase = true) ||
-               message.contains("not authorized", ignoreCase = true)
     }
 
     fun resetAfterSuccess() {

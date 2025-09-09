@@ -34,15 +34,16 @@ class CreatePasteUseCaseTest {
         val title = "Test Paste"
         val content = "Hello World"
         val visibility = PasteVisibility.PUBLIC
-        val language = "text"
+        val syntaxLanguage = "plaintext"
 
         val expectedPaste = PasteDto(
             id = "paste123",
             title = title,
             content = content,
             visibility = visibility,
-            language = language,
+            syntaxLanguage = syntaxLanguage,
             createdAt = "2025-01-20T12:00:00Z",
+            updatedAt = "2025-01-20T12:00:00Z",
             userId = null,
             authorUsername = null,
             authorDisplayName = null,
@@ -50,11 +51,11 @@ class CreatePasteUseCaseTest {
             viewCount = 0
         )
 
-        whenever(pasteRepository.createPaste(title, content, visibility, language))
+        whenever(pasteRepository.createPaste(title, content, visibility, syntaxLanguage))
             .thenReturn(flowOf(PasteResult.Success(expectedPaste)))
 
         // When & Then
-        createPasteUseCase(title, content, visibility, language).test {
+        createPasteUseCase(title, content, visibility, syntaxLanguage).test {
             val result = awaitItem()
             assertTrue(result is PasteResult.Success)
             assertEquals(expectedPaste, (result as PasteResult.Success<PasteDto>).data)
@@ -68,14 +69,14 @@ class CreatePasteUseCaseTest {
         val title = "Test Paste"
         val content = "Hello World"
         val visibility = PasteVisibility.PUBLIC
-        val language = "text"
+        val syntaxLanguage = "plaintext"
         val errorMessage = "Server error"
 
-        whenever(pasteRepository.createPaste(title, content, visibility, language))
+        whenever(pasteRepository.createPaste(title, content, visibility, syntaxLanguage))
             .thenReturn(flowOf(PasteResult.Error(errorMessage)))
 
         // When & Then
-        createPasteUseCase(title, content, visibility, language).test {
+        createPasteUseCase(title, content, visibility, syntaxLanguage).test {
             val result = awaitItem()
             assertTrue(result is PasteResult.Error)
             assertEquals(errorMessage, (result as PasteResult.Error).message)
@@ -89,15 +90,16 @@ class CreatePasteUseCaseTest {
         val title = "Kotlin Code"
         val content = "fun main() { println(\"Hello\") }"
         val visibility = PasteVisibility.PRIVATE
-        val language = "kotlin"
+        val syntaxLanguage = "kotlin"
 
         val expectedPaste = PasteDto(
             id = "paste456",
             title = title,
             content = content,
             visibility = visibility,
-            language = language,
+            syntaxLanguage = syntaxLanguage,
             createdAt = "2025-01-20T12:00:00Z",
+            updatedAt = "2025-01-20T12:00:00Z",
             userId = "user123",
             authorUsername = "testuser",
             authorDisplayName = "Test User",
@@ -105,11 +107,11 @@ class CreatePasteUseCaseTest {
             viewCount = 0
         )
 
-        whenever(pasteRepository.createPaste(title, content, visibility, language))
+        whenever(pasteRepository.createPaste(title, content, visibility, syntaxLanguage))
             .thenReturn(flowOf(PasteResult.Success(expectedPaste)))
 
         // When & Then
-        createPasteUseCase(title, content, visibility, language).test {
+        createPasteUseCase(title, content, visibility, syntaxLanguage).test {
             val result = awaitItem()
             assertTrue(result is PasteResult.Success)
             assertEquals(expectedPaste, (result as PasteResult.Success<PasteDto>).data)
@@ -247,8 +249,9 @@ class CreatePasteUseCaseTest {
             title = title1,
             content = content1,
             visibility = visibility,
-            language = "text",
+            syntaxLanguage = "plaintext",
             createdAt = "2025-01-20T12:00:00Z",
+            updatedAt = "2025-01-20T12:00:00Z",
             userId = null,
             authorUsername = null,
             authorDisplayName = null,
@@ -261,8 +264,9 @@ class CreatePasteUseCaseTest {
             title = title2,
             content = content2,
             visibility = visibility,
-            language = "text",
+            syntaxLanguage = "plaintext",
             createdAt = "2025-01-20T12:01:00Z",
+            updatedAt = "2025-01-20T12:01:00Z",
             userId = null,
             authorUsername = null,
             authorDisplayName = null,

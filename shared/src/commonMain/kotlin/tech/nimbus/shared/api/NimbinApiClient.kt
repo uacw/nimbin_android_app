@@ -21,10 +21,16 @@ interface NimbinApiClient {
     suspend fun createPaste(request: CreatePasteRequestDto): ApiResult<PasteDto>
     
     /**
-     * Получить заметку по ID
+     * Получить заметку по ID (возвращает ETag в поле etag)
      */
     suspend fun getPaste(id: String): ApiResult<PasteDto>
     
+    /**
+     * Обновить заметку по ID, используя оптимистичную блокировку через ETag.
+     * Заголовок If-Match обязателен, иначе сервер вернет 412.
+     */
+    suspend fun updatePaste(id: String, request: UpdatePasteRequestDto, ifMatchEtag: String): ApiResult<PasteDto>
+
     /**
      * Получить публичные заметки с пагинацией
      */
@@ -47,6 +53,13 @@ interface NimbinApiClient {
      */
     suspend fun deletePaste(token: String, id: String): ApiResult<DeleteResponseDto>
     
+    // === Utils ===
+
+    /**
+     * Получить список поддерживаемых языков подсветки синтаксиса
+     */
+    suspend fun getSyntaxLanguages(): ApiResult<List<String>>
+
     // === Authentication ===
     
     /**
@@ -60,15 +73,14 @@ interface NimbinApiClient {
     suspend fun login(request: LoginRequestDto): ApiResult<AuthResponseDto>
     
     /**
-     * Получить информацию о текущем пользователе
+     * Получить информацию о текущем польз��вателе
      */
     suspend fun getCurrentUser(token: String): ApiResult<UserDto>
     
     // === User Profile ===
     
     /**
-     * Получить свой профиль с полной информацией (требует авторизации)
-     * Согласно API: GET /api/users/profile
+     * Получить профиль текущего пользователя (требует авторизации)
      */
     suspend fun getMyProfile(token: String): ApiResult<UserProfileDto>
 

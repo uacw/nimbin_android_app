@@ -69,7 +69,7 @@ object MockHelper {
     }
 
     /**
-     * Создает mock HTTP ответы для успешных API операций.
+     * Создает mock HTTP ответы дл�� успешных API операций.
      */
     fun createSuccessApiResponses(): Map<String, String> = mapOf(
         "POST:/api/auth/login" to """
@@ -106,7 +106,7 @@ object MockHelper {
                 "title": "Created Paste",
                 "content": "Successfully created paste content",
                 "visibility": "PUBLIC",
-                "language": "text",
+                "syntaxLanguage": "plaintext",
                 "createdAt": "2025-01-20T12:00:00Z",
                 "userId": "user123",
                 "authorUsername": "testuser",
@@ -122,7 +122,7 @@ object MockHelper {
                 "title": "Test Paste",
                 "content": "Test paste content",
                 "visibility": "PUBLIC",
-                "language": "text",
+                "syntaxLanguage": "plaintext",
                 "createdAt": "2025-01-20T12:00:00Z",
                 "userId": "user123",
                 "authorUsername": "testuser",
@@ -139,7 +139,7 @@ object MockHelper {
                     "title": "Public Paste 1",
                     "content": "Public content 1",
                     "visibility": "PUBLIC",
-                    "language": "text",
+                    "syntaxLanguage": "plaintext",
                     "createdAt": "2025-01-20T12:00:00Z",
                     "userId": "user1",
                     "authorUsername": "author1",
@@ -152,7 +152,7 @@ object MockHelper {
                     "title": "Public Paste 2",
                     "content": "Public content 2",
                     "visibility": "PUBLIC",
-                    "language": "kotlin",
+                    "syntaxLanguage": "kotlin",
                     "createdAt": "2025-01-20T11:00:00Z",
                     "userId": "user2",
                     "authorUsername": "author2",
