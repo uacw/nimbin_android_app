@@ -10,6 +10,7 @@ import tech.nimbus.nimbin.ui.features.profile.ProfileScreen // Импорт дл
 import tech.nimbus.nimbin.ui.features.paste.PasteDetailScreen // Импорт для PasteDetailScreen
 import tech.nimbus.nimbin.ui.features.profile.MyPastesScreen
 import tech.nimbus.nimbin.ui.features.profile.UserProfileScreen // Импорт для UserProfileScreen
+import tech.nimbus.nimbin.ui.features.paste.EditPasteScreen // добавлен импорт EditPasteScreen
 
 // Sealed class для экранов внутри Home графа
 sealed class MainAppScreen(val route: String) {
@@ -22,6 +23,9 @@ sealed class MainAppScreen(val route: String) {
     object MyPastes : MainAppScreen(route = "my_pastes_screen")
     object UserProfile : MainAppScreen(route = "user_profile/{userId}") {
         fun build(userId: String) = "user_profile/$userId"
+    }
+    object EditPaste : MainAppScreen(route = "edit_paste/{id}") { // новый маршрут для редактирования
+        fun build(id: String) = "edit_paste/$id"
     }
 }
 
@@ -47,6 +51,10 @@ fun NavGraphBuilder.homeNavGraph(navController: NavController) {
         composable(route = MainAppScreen.UserProfile.route) { backStackEntry ->
             val userId = backStackEntry.arguments?.getString("userId") ?: return@composable
             UserProfileScreen(navController = navController, userId = userId) // Отображаем UserProfileScreen
+        }
+        composable(route = MainAppScreen.EditPaste.route) { backStackEntry -> // новый экран редактирования
+            val id = backStackEntry.arguments?.getString("id") ?: return@composable
+            EditPasteScreen(navController = navController, pasteId = id)
         }
     }
 }

@@ -20,6 +20,14 @@ class PasteRepositoryImpl @Inject constructor(
     private val sessionManager: SessionManager
 ) : PasteRepository {
 
+    private fun normalizeForRequest(lang: String): String {
+        val l = lang.trim().lowercase()
+        return when (l) {
+            "plaintext", "plain", "text", "txt", "none" -> "plaintext"
+            else -> l
+        }
+    }
+
     override fun getPublicPastes(page: Int, limit: Int): Flow<PasteResult<List<PasteDto>>> = flow {
         emit(PasteResult.Loading)
         when (val result = apiClient.getPublicPastes(page, limit)) {
@@ -44,7 +52,7 @@ class PasteRepositoryImpl @Inject constructor(
             content = content,
             visibility = visibility,
             expiresAt = expiresAt,
-            syntaxLanguage = syntaxLanguage
+            syntaxLanguage = normalizeForRequest(syntaxLanguage)
         )
         when (val result = apiClient.createPaste(request)) {
             is ApiResult.Success -> emit(PasteResult.Success(result.data))
@@ -92,7 +100,7 @@ class PasteRepositoryImpl @Inject constructor(
             content = content,
             visibility = visibility,
             expiresAt = expiresAt,
-            syntaxLanguage = syntaxLanguage
+            syntaxLanguage = normalizeForRequest(syntaxLanguage)
         )
         when (val result = apiClient.updatePaste(id, request, etag)) {
             is ApiResult.Success -> emit(PasteResult.Success(result.data))

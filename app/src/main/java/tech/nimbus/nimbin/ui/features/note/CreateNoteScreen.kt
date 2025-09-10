@@ -28,9 +28,13 @@ fun CreateNoteScreen(
     val content = viewModel.content
     val visibility = viewModel.visibility
     val createState = viewModel.createState
+    val syntaxLanguage = viewModel.syntaxLanguage
+    val languagesState = viewModel.languagesState
+    val syntaxLanguages = viewModel.syntaxLanguages
     val context = LocalContext.current
 
     var dropdownExpanded by remember { mutableStateOf(false) }
+    var syntaxExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(createState) {
         if (createState is PasteResult.Success) {
@@ -97,6 +101,57 @@ fun CreateNoteScreen(
                                 dropdownExpanded = false
                             }
                         )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Syntax languages dropdown
+            when (languagesState) {
+                is PasteResult.Loading -> {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        CircularProgressIndicator(modifier = Modifier.size(ButtonDefaults.IconSize))
+                        Spacer(Modifier.width(8.dp))
+                        Text(text = stringResource(id = R.string.edit_paste_syntax_label))
+                    }
+                }
+                is PasteResult.Error -> {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(text = stringResource(id = R.string.public_pastes_error, languagesState.message), color = MaterialTheme.colorScheme.error)
+                        Spacer(Modifier.width(8.dp))
+                        TextButton(onClick = { viewModel.reloadLanguages() }) { Text(stringResource(id = R.string.public_pastes_retry)) }
+                    }
+                }
+                is PasteResult.Success, null -> {
+                    ExposedDropdownMenuBox(
+                        expanded = syntaxExpanded,
+                        onExpandedChange = { syntaxExpanded = !syntaxExpanded }
+                    ) {
+                        OutlinedTextField(
+                            value = syntaxLanguage,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text(stringResource(id = R.string.edit_paste_syntax_label)) },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = syntaxExpanded) },
+                            modifier = Modifier
+                                .menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true)
+                                .fillMaxWidth()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = syntaxExpanded,
+                            onDismissRequest = { syntaxExpanded = false }
+                        ) {
+                            syntaxLanguages.forEach { lang ->
+                                DropdownMenuItem(
+                                    text = { Text(lang) },
+                                    onClick = {
+                                        viewModel.onSyntaxLanguageChange(lang)
+                                        syntaxExpanded = false
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
             }

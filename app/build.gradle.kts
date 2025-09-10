@@ -56,7 +56,7 @@ android {
             isMinifyEnabled = false
             isShrinkResources = false
 
-            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080\"")
+            buildConfigField("String", "API_BASE_URL", "\"https://nimbin-back-1de949af6629.herokuapp.com\"")
             buildConfigField("boolean", "ENABLE_LOGGING", "true")
         }
 
@@ -214,4 +214,7 @@ dependencies {
     androidTestImplementation("androidx.test:runner:1.5.2")
     androidTestImplementation("androidx.test:rules:1.5.0")
     androidTestImplementation("androidx.test.ext:junit-ktx:1.1.5")
+
+    // Ktor logging
+    implementation("io.ktor:ktor-client-logging:${libs.versions.ktor.get()}")
 }

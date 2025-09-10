@@ -116,4 +116,19 @@
     <string name="error_profile_validation">Ошибка валидации профиля</string>
     <string name="error_authentication_required">Требуется авторизация</string>
     <string name="create_note_fields_required">Заголовок и содержимое не могут быть пустыми</string>
+
+    <!-- Edit Paste Strings -->
+    <string name="edit_paste_title">Редактирование</string>
+    <string name="edit_paste_save_cd">Сохранить</string>
+    <string name="edit_paste_save_button">Сохранить</string>
+    <string name="edit_paste_syntax_label">Язык подсветки</string>
+    <string name="edit_paste_error">Ошибка: %1$s</string>
+    <string name="edit_paste_success">Сохранено</string>
+    <string name="edit_paste_conflict_title">Конфликт версий</string>
+    <string name="edit_paste_conflict_message">Заметка была изменена в другом месте. Обновите данные и попробуйте сохранить снова.</string>
+    <string name="edit_paste_conflict_reload">Обновить</string>
+    <string name="edit_paste_conflict_dismiss">Закрыть</string>
+
+    <!-- Paste Detail: Edit Action -->
+    <string name="paste_detail_edit_cd">Редактировать</string>
 </resources>

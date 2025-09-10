@@ -299,7 +299,9 @@ class NimbinApiClientImpl(
             setBody(request)
         }
         val raw = response.bodyAsText()
-        decodeVariants<PasteDto>(raw) { listOf("paste", "data", "result", "payload") }
+        val dto = decodeVariants<PasteDto>(raw) { listOf("paste", "data", "result", "payload") }
+        val etag = response.headers[ApiHeaders.ETAG]
+        if (etag != null && dto.etag != etag) dto.copy(etag = etag) else dto
     }
 
     override suspend fun getPublicPastes(page: Int, limit: Int): ApiResult<List<PasteDto>> = safe {
@@ -360,14 +362,28 @@ class NimbinApiClientImpl(
 
     // === PROFILE ===
     override suspend fun getMyProfile(token: String): ApiResult<UserProfileDto> = safe {
-        client.get {
+        val response = client.get {
             url(full(ApiEndpoints.USER_PROFILE))
             addAuthIfPresent(this, token)
-        }.body()
+        }
+        val raw = response.bodyAsText()
+        val status = response.status.value
+        if (status >= 400) {
+            val msg = extractErrorMessage(raw) ?: raw
+            throw ClientRequestException(response, msg)
+        }
+        decodeVariants<UserProfileDto>(raw) { listOf("profile", "data", "result", "payload") }
     }
 
     override suspend fun getUserProfile(userId: String): ApiResult<UserProfileDto> = safe {
-        client.get { url(full(ApiEndpoints.userProfileById(userId))) }.body()
+        val response = client.get { url(full(ApiEndpoints.userProfileById(userId))) }
+        val raw = response.bodyAsText()
+        val status = response.status.value
+        if (status >= 400) {
+            val msg = extractErrorMessage(raw) ?: raw
+            throw ClientRequestException(response, msg)
+        }
+        decodeVariants<UserProfileDto>(raw) { listOf("profile", "data", "result", "payload") }
     }
 
     override suspend fun updateProfile(token: String, request: UpdateProfileRequestDto): ApiResult<UserDto> = safe {

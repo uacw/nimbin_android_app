@@ -9,6 +9,7 @@ import dagger.hilt.components.SingletonComponent
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.*
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import tech.nimbus.shared.api.ApiConfig
@@ -20,6 +21,8 @@ import tech.nimbus.nimbin.data.preferences.UserPreferencesRepository
 import tech.nimbus.nimbin.domain.utils.StringProvider
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.flow.firstOrNull
+import tech.nimbus.nimbin.BuildConfig
+import timber.log.Timber
 
 class DataStoreTokenProvider(private val prefs: UserPreferencesRepository): TokenProvider {
     override fun getToken(): String? = runBlocking { prefs.authToken.firstOrNull() }
@@ -40,13 +43,30 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideApiConfig(): ApiConfig = ApiConfig(baseUrl = "https://nimbin-back-1de949af6629.herokuapp.com")
+    fun provideApiConfig(): ApiConfig = ApiConfig(
+        baseUrl = BuildConfig.API_BASE_URL,
+        enableLogging = BuildConfig.ENABLE_LOGGING
+    )
 
     @Provides
     @Singleton
     fun provideHttpClient(): HttpClient = HttpClient(Android) {
         install(ContentNegotiation) {
-            json(Json { ignoreUnknownKeys = true; isLenient = true })
+            json(Json {
+                ignoreUnknownKeys = true
+                isLenient = true
+                encodeDefaults = true // важно: сериализовать поля со значениями по умолчанию
+            })
+        }
+        if (BuildConfig.ENABLE_LOGGING) {
+            install(Logging) {
+                logger = object : Logger {
+                    override fun log(message: String) {
+                        Timber.tag("Ktor").d(message)
+                    }
+                }
+                level = LogLevel.BODY
+            }
         }
     }
 

@@ -116,4 +116,19 @@
     <string name="error_profile_validation">Profile validation error</string>
     <string name="error_authentication_required">Authentication required</string>
     <string name="create_note_fields_required">Title and content cannot be empty</string>
+
+    <!-- Edit Paste Strings -->
+    <string name="edit_paste_title">Edit Note</string>
+    <string name="edit_paste_save_cd">Save</string>
+    <string name="edit_paste_save_button">Save</string>
+    <string name="edit_paste_syntax_label">Syntax language</string>
+    <string name="edit_paste_error">Error: %1$s</string>
+    <string name="edit_paste_success">Saved</string>
+    <string name="edit_paste_conflict_title">Version conflict</string>
+    <string name="edit_paste_conflict_message">This paste was updated elsewhere. Reload to get the latest version and try saving again.</string>
+    <string name="edit_paste_conflict_reload">Reload</string>
+    <string name="edit_paste_conflict_dismiss">Dismiss</string>
+
+    <!-- Paste Detail: Edit Action -->
+    <string name="paste_detail_edit_cd">Edit</string>
 </resources>

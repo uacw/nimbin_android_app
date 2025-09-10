@@ -7,25 +7,44 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import tech.nimbus.nimbin.domain.repository.AuthRepository
 import tech.nimbus.nimbin.domain.repository.PasteResult
 import tech.nimbus.nimbin.domain.usecase.paste.GetPasteUseCase
+import tech.nimbus.nimbin.domain.usecase.profile.GetMyProfileUseCase
 import tech.nimbus.shared.dto.PasteDto
 import javax.inject.Inject
 
 @HiltViewModel
 class PasteDetailViewModel @Inject constructor(
     private val getPasteUseCase: GetPasteUseCase,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val getMyProfileUseCase: GetMyProfileUseCase
 ) : ViewModel() {
 
     var state by mutableStateOf<PasteResult<PasteDto>?>(null)
         private set
 
+    var currentUserId by mutableStateOf<String?>(null)
+        private set
+
+    init {
+        // Загрузим текущего пользователя один раз
+        viewModelScope.launch {
+            val token = authRepository.getAuthToken().first()
+            if (!token.isNullOrBlank()) {
+                getMyProfileUseCase(token).collectLatest { res ->
+                    if (res is tech.nimbus.nimbin.domain.repository.ProfileResult.Success) {
+                        currentUserId = res.data.user.id
+                    }
+                }
+            }
+        }
+    }
+
     fun load(id: String) {
-        val current = state
-        if (current is PasteResult.Success && current.data.id == id) return
+        // всегда перезагружаем (исправляет неработающий Refresh и post-edit reload)
         state = PasteResult.Loading
         viewModelScope.launch {
             getPasteUseCase(id).collectLatest { result ->
