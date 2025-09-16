@@ -67,6 +67,7 @@
     <string name="my_pastes_filter_private">Privadas</string>
     <string name="my_pastes_login_required">É necessário fazer login para ver suas notas</string>
     <string name="my_pastes_reset_filter">Redefinir filtro</string>
+    <string name="my_pastes_filter_favorites">Favoritas</string>
 
     <!-- Public Pastes Strings -->
     <string name="public_pastes_empty">Não há notas públicas</string>
@@ -116,4 +117,23 @@
     <string name="error_profile_validation">Erro de validação do perfil</string>
     <string name="error_authentication_required">Autenticação necessária</string>
     <string name="create_note_fields_required">Título e conteúdo não podem estar vazios</string>
+
+    <!-- Edit Paste Strings -->
+    <string name="edit_paste_title">Editar nota</string>
+    <string name="edit_paste_save_cd">Salvar</string>
+    <string name="edit_paste_save_button">Salvar</string>
+    <string name="edit_paste_syntax_label">Linguagem de sintaxe</string>
+    <string name="edit_paste_error">Erro: %1$s</string>
+    <string name="edit_paste_success">Salvo</string>
+    <string name="edit_paste_conflict_title">Conflito de versão</string>
+    <string name="edit_paste_conflict_message">Esta nota foi atualizada em outro lugar. Recarregue para obter a versão mais recente e tente salvar novamente.</string>
+    <string name="edit_paste_conflict_reload">Recarregar</string>
+    <string name="edit_paste_conflict_dismiss">Fechar</string>
+
+    <!-- Paste Detail: Edit Action -->
+    <string name="paste_detail_edit_cd">Editar</string>
+
+    <!-- Favorites CD -->
+    <string name="paste_favorite_add_cd">Adicionar aos favoritos</string>
+    <string name="paste_favorite_remove_cd">Remover dos favoritos</string>
 </resources>

@@ -56,6 +56,7 @@ android {
             isMinifyEnabled = false
             isShrinkResources = false
 
+            // Локальный backend при запуске на Android эмуляторе
             buildConfigField("String", "API_BASE_URL", "\"https://nimbin-back-1de949af6629.herokuapp.com\"")
             buildConfigField("boolean", "ENABLE_LOGGING", "true")
         }
@@ -65,7 +66,7 @@ android {
             isShrinkResources = true
             isDebuggable = false
 
-            buildConfigField("String", "API_BASE_URL", "\"https://api.nimbin.app\"")
+            buildConfigField("String", "API_BASE_URL", "\"https://nimbin-back-1de949af6629.herokuapp.com\"")
             buildConfigField("boolean", "ENABLE_LOGGING", "false")
 
             proguardFiles(

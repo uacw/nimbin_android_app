@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import tech.nimbus.nimbin.domain.repository.AuthResult
+import tech.nimbus.nimbin.domain.usecase.auth.ContinueAsGuestUseCase
 import tech.nimbus.nimbin.domain.usecase.auth.LoginUseCase
 import tech.nimbus.nimbin.domain.usecase.auth.SaveAuthTokenUseCase
 import timber.log.Timber
@@ -52,7 +53,8 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase,
-    private val saveAuthTokenUseCase: SaveAuthTokenUseCase
+    private val saveAuthTokenUseCase: SaveAuthTokenUseCase,
+    private val continueAsGuestUseCase: ContinueAsGuestUseCase
 ) : ViewModel() {
 
     /**
@@ -79,7 +81,7 @@ class LoginViewModel @Inject constructor(
     /**
      * Текущее состояние процесса аутентификации.
      *
-     * Отслеживается UI компонентами для:
+     * Отс��еживается UI компонентами для:
      * - Отображения индикаторов загрузки
      * - Показа сообщений об ошибках
      * - Навигации при успешном входе
@@ -110,7 +112,7 @@ class LoginViewModel @Inject constructor(
      * Обновляет пароль в форме входа.
      *
      * Автоматически очищает предыдущие ошибки аутентификации
-     * для лучшего пользовательского опыта.
+     * для лучш��го пользовательского опыта.
      *
      * @param newPassword Новое значение пароля
      */
@@ -178,6 +180,44 @@ class LoginViewModel @Inject constructor(
                         is AuthResult.Loading -> {
                             Timber.d("Login in progress...")
                         }
+                    }
+                }
+                .collect { }
+        }
+    }
+
+    /**
+     * Продолжает как гость, без аутентификации.
+     *
+     * Запускает процесс входа в систему с использованием временной сессии.
+     * Полезно для пользователей, желающих исследовать приложение без регистрации.
+     *
+     * ## Процесс выполнения:
+     * 1. Установка состояния Loading
+     * 2. Отправка запроса через ContinueAsGuestUseCase
+     * 3. При успехе: сохранение токена и установка состояния Success
+     * 4. При ошибке: установка состояния Error с сообщением
+     *
+     * ## Ограничения:
+     * - Гостевая сессия имеет ограниченный доступ к функциям приложения
+     * - Рекомендуется завершить регистрацию для полного доступа
+     *
+     * @see ContinueAsGuestUseCase
+     */
+    fun continueAsGuest() {
+        if (loginState is AuthResult.Loading) return
+        viewModelScope.launch {
+            continueAsGuestUseCase()
+                .onEach { result ->
+                    loginState = result
+                    when (result) {
+                        is AuthResult.Success -> {
+                            Timber.i("Guest session started")
+                            saveAuthTokenUseCase(result.data)
+                            password = ""
+                        }
+                        is AuthResult.Error -> Timber.w("Guest auth failed: ${result.message}")
+                        is AuthResult.Loading -> Timber.d("Guest auth in progress...")
                     }
                 }
                 .collect { }

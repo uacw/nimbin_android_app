@@ -18,9 +18,10 @@ import kotlinx.serialization.Serializable
  * @property createdAt Дата и время создания в формате ISO string
  * @property updatedAt Дата и время последнего обновления в формате ISO string
  * @property expiresAt Дата и время автоудаления (null = не удалять)
- * @property syntaxLanguage Язык программирования для подсветки синтаксиса
+ * @property language Язык программирования для подсветки синтаксиса
  * @property viewCount Счетчик просмотров заметки
  * @property etag Этикетка версии заметки (для оптимистичной блокировки)
+ * @property isFavorite Признак, что заметка в избранном у текущего пользователя
  */
 @Serializable
 data class PasteDto(
@@ -36,5 +37,6 @@ data class PasteDto(
     val expiresAt: String? = null,
     val syntaxLanguage: String = "plaintext",
     val viewCount: Int = 0,
-    val etag: String? = null
+    val etag: String? = null,
+    val isFavorite: Boolean? = null
 )

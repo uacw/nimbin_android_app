@@ -15,12 +15,14 @@ import tech.nimbus.nimbin.domain.usecase.paste.GetPasteUseCase
 import tech.nimbus.nimbin.domain.usecase.profile.GetMyProfileUseCase
 import tech.nimbus.shared.dto.PasteDto
 import javax.inject.Inject
+import tech.nimbus.nimbin.domain.repository.PasteRepository
 
 @HiltViewModel
 class PasteDetailViewModel @Inject constructor(
     private val getPasteUseCase: GetPasteUseCase,
     private val authRepository: AuthRepository,
-    private val getMyProfileUseCase: GetMyProfileUseCase
+    private val getMyProfileUseCase: GetMyProfileUseCase,
+    private val pasteRepository: PasteRepository
 ) : ViewModel() {
 
     var state by mutableStateOf<PasteResult<PasteDto>?>(null)
@@ -49,6 +51,24 @@ class PasteDetailViewModel @Inject constructor(
         viewModelScope.launch {
             getPasteUseCase(id).collectLatest { result ->
                 state = result
+            }
+        }
+    }
+
+    fun toggleFavorite() {
+        val current = state
+        if (current !is PasteResult.Success) return
+        val paste = current.data
+        val curFav = paste.isFavorite ?: return
+        val target = !curFav
+        // Оптимистичное обновление
+        state = PasteResult.Success(paste.copy(isFavorite = target))
+        viewModelScope.launch {
+            pasteRepository.toggleFavorite(paste.id, target).collectLatest { res ->
+                if (res is PasteResult.Error) {
+                    // откат
+                    state = PasteResult.Success(paste.copy(isFavorite = curFav))
+                }
             }
         }
     }

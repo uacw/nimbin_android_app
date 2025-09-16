@@ -36,4 +36,9 @@ interface PasteRepository {
     ): Flow<PasteResult<PasteDto>>
 
     fun getSyntaxLanguages(): Flow<PasteResult<List<String>>>
+
+    // Favorites
+    fun toggleFavorite(pasteId: String, makeFavorite: Boolean): Flow<PasteResult<Unit>>
+
+    fun getMyPastesFavoriteOnly(token: String, page: Int = 1, limit: Int = 20): Flow<PasteResult<List<PasteDto>>>
 }

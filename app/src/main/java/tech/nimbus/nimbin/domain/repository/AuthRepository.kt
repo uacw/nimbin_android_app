@@ -104,7 +104,7 @@ interface AuthRepository {
      * @param email Уникальный email адрес для восстановления доступа
      *              и уведомлений.
      * @param password Пароль (минимум 6 символов).
-     *                 Рекомендуется использовать сложные пароли.
+     *                 Рекомендуе��ся использовать сложные пароли.
      *
      * @return Flow<AuthResult<Unit>> Поток состояний регистрации:
      *         - Loading: процесс создания аккаунта на сервере
@@ -152,4 +152,14 @@ interface AuthRepository {
      * Clears the authentication token from persistent storage.
      */
     suspend fun clearAuthToken()
+
+    /**
+     * Запуск гостевой сессии. Возвращает guest JWT и сохраняет его.
+     */
+    fun continueAsGuest(): Flow<AuthResult<String>>
+
+    /**
+     * Поток признака гостевой сессии.
+     */
+    fun isGuest(): Flow<Boolean>
 }

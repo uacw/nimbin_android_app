@@ -12,11 +12,13 @@ import tech.nimbus.shared.utils.ApiResult
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
+import tech.nimbus.nimbin.data.remote.NimbinApiClientImpl
 
 @Singleton
 class AuthRepositoryImpl @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val apiClient: NimbinApiClient
+    private val apiClient: NimbinApiClient,
+    private val rawApi: NimbinApiClientImpl
 ) : AuthRepository {
 
     override fun login(email: String, password: String): Flow<AuthResult<String>> = flow {
@@ -27,6 +29,7 @@ class AuthRepositoryImpl @Inject constructor(
             is ApiResult.Success -> {
                 val token = result.data.token
                 userPreferencesRepository.saveAuthToken(token)
+                userPreferencesRepository.saveIsGuest(false)
                 emit(AuthResult.Success(token))
             }
             is ApiResult.Error -> {
@@ -43,6 +46,7 @@ class AuthRepositoryImpl @Inject constructor(
             is ApiResult.Success -> {
                 val token = result.data.token
                 userPreferencesRepository.saveAuthToken(token)
+                userPreferencesRepository.saveIsGuest(false)
                 emit(AuthResult.Success(Unit))
             }
             is ApiResult.Error -> {
@@ -55,10 +59,29 @@ class AuthRepositoryImpl @Inject constructor(
     override fun logout(): Flow<AuthResult<Unit>> = flow {
         emit(AuthResult.Loading)
         userPreferencesRepository.clearAuthToken()
+        userPreferencesRepository.clearIsGuest()
         emit(AuthResult.Success(Unit))
     }
 
     override fun getAuthToken(): Flow<String?> = userPreferencesRepository.authToken
     override suspend fun saveAuthToken(token: String) = userPreferencesRepository.saveAuthToken(token)
     override suspend fun clearAuthToken() = userPreferencesRepository.clearAuthToken()
+
+    override fun continueAsGuest(): Flow<AuthResult<String>> = flow {
+        emit(AuthResult.Loading)
+        when (val result = rawApi.guestAuth()) {
+            is ApiResult.Success -> {
+                val token = result.data.token
+                userPreferencesRepository.saveAuthToken(token)
+                userPreferencesRepository.saveIsGuest(true)
+                emit(AuthResult.Success(token))
+            }
+            is ApiResult.Error -> {
+                Timber.e("Guest auth error: %s code=%s", result.message, result.code)
+                emit(AuthResult.Error(result.message))
+            }
+        }
+    }
+
+    override fun isGuest(): Flow<Boolean> = userPreferencesRepository.isGuest
 }

@@ -9,10 +9,8 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.serializer
-import kotlinx.serialization.decodeFromString // added
 import tech.nimbus.shared.api.ApiConfig
 import tech.nimbus.shared.api.ApiEndpoints
 import tech.nimbus.shared.api.ApiHeaders
@@ -284,23 +282,24 @@ class NimbinApiClientImpl(
         }
         val raw = response.bodyAsText()
         val dto = decodeVariants<PasteDto>(raw) { listOf("paste", "data", "result", "payload") }
-        val etag = response.headers[ApiHeaders.ETAG]
+        val etag = response.headers["ETag"]
         if (etag != null && dto.etag != etag) dto.copy(etag = etag) else dto
     }
 
-    override suspend fun updatePaste(id: String, request: UpdatePasteRequestDto, ifMatchEtag: String): ApiResult<PasteDto> = safe {
+    // НЕ override: метод вне интерфейса shared
+    suspend fun updatePaste(id: String, request: UpdatePasteRequestDto, ifMatchEtag: String): ApiResult<PasteDto> = safe {
         val response = client.put {
             url(full(ApiEndpoints.pasteById(id)))
             contentType(ContentType.Application.Json)
             addAuthIfPresent(this)
             headers {
-                append(ApiHeaders.IF_MATCH, ifMatchEtag)
+                append("If-Match", ifMatchEtag)
             }
             setBody(request)
         }
         val raw = response.bodyAsText()
         val dto = decodeVariants<PasteDto>(raw) { listOf("paste", "data", "result", "payload") }
-        val etag = response.headers[ApiHeaders.ETAG]
+        val etag = response.headers["ETag"]
         if (etag != null && dto.etag != etag) dto.copy(etag = etag) else dto
     }
 
@@ -322,8 +321,9 @@ class NimbinApiClientImpl(
         }.body()
     }
 
-    override suspend fun getSyntaxLanguages(): ApiResult<List<String>> = safe {
-        client.get { url(full(ApiEndpoints.SYNTAX_LANGUAGES)) }.body()
+    // НЕ override: метод вне интерфейса shared
+    suspend fun getSyntaxLanguages(): ApiResult<List<String>> = safe {
+        client.get { url(full("/api/utils/syntax-languages")) }.body()
     }
 
     // === AUTH ===
@@ -331,6 +331,8 @@ class NimbinApiClientImpl(
         client.post {
             url(full(ApiEndpoints.REGISTER))
             contentType(ContentType.Application.Json)
+            // Важно: если есть гостевой токен – прикрепим его для миграции данных
+            addAuthIfPresent(this)
             setBody(request)
         }.body()
     }
@@ -340,6 +342,13 @@ class NimbinApiClientImpl(
             url(full(ApiEndpoints.LOGIN))
             contentType(ContentType.Application.Json)
             setBody(request)
+        }.body()
+    }
+
+    suspend fun guestAuth(): ApiResult<AuthResponseDto> = safe {
+        client.post {
+            url(full("/api/auth/guest"))
+            contentType(ContentType.Application.Json)
         }.body()
     }
 
@@ -361,7 +370,8 @@ class NimbinApiClientImpl(
     }
 
     // === PROFILE ===
-    override suspend fun getMyProfile(token: String): ApiResult<UserProfileDto> = safe {
+    // НЕ override: метод вне и��терфейса shared
+    suspend fun getMyProfile(token: String): ApiResult<UserProfileDto> = safe {
         val response = client.get {
             url(full(ApiEndpoints.USER_PROFILE))
             addAuthIfPresent(this, token)
@@ -397,5 +407,29 @@ class NimbinApiClientImpl(
 
     override suspend fun getUserPublicPastes(userId: String, page: Int, limit: Int): ApiResult<List<PasteDto>> = safe {
         client.get { url(full(ApiEndpoints.userPublicPastes(userId, page, limit))) }.body()
+    }
+
+    // === FAVORITES ===
+    suspend fun addToFavorites(pasteId: String): ApiResult<Unit> = safe {
+        client.post {
+            url(full(ApiEndpoints.pasteById(pasteId) + "/favorite"))
+            addAuthIfPresent(this)
+        }
+        Unit
+    }
+
+    suspend fun removeFromFavorites(pasteId: String): ApiResult<Unit> = safe {
+        client.delete {
+            url(full(ApiEndpoints.pasteById(pasteId) + "/favorite"))
+            addAuthIfPresent(this)
+        }
+        Unit
+    }
+
+    suspend fun getMyFavoritePastes(token: String, page: Int, limit: Int): ApiResult<List<PasteDto>> = safe {
+        client.get {
+            url(full(ApiEndpoints.userPastes(page, limit) + "&favorite=true"))
+            addAuthIfPresent(this, token)
+        }.body()
     }
 }

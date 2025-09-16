@@ -13,11 +13,13 @@ import tech.nimbus.shared.utils.ApiResult
 import javax.inject.Inject
 import javax.inject.Singleton
 import tech.nimbus.nimbin.core.session.SessionManager
+import tech.nimbus.nimbin.data.remote.NimbinApiClientImpl
 
 @Singleton
 class PasteRepositoryImpl @Inject constructor(
     private val apiClient: NimbinApiClient,
-    private val sessionManager: SessionManager
+    private val sessionManager: SessionManager,
+    private val rawApi: NimbinApiClientImpl
 ) : PasteRepository {
 
     private fun normalizeForRequest(lang: String): String {
@@ -102,7 +104,7 @@ class PasteRepositoryImpl @Inject constructor(
             expiresAt = expiresAt,
             syntaxLanguage = normalizeForRequest(syntaxLanguage)
         )
-        when (val result = apiClient.updatePaste(id, request, etag)) {
+        when (val result = rawApi.updatePaste(id, request, etag)) {
             is ApiResult.Success -> emit(PasteResult.Success(result.data))
             is ApiResult.Error -> {
                 sessionManager.handleAuthError(result.message, result.code)
@@ -113,7 +115,30 @@ class PasteRepositoryImpl @Inject constructor(
 
     override fun getSyntaxLanguages(): Flow<PasteResult<List<String>>> = flow {
         emit(PasteResult.Loading)
-        when (val result = apiClient.getSyntaxLanguages()) {
+        when (val result = rawApi.getSyntaxLanguages()) {
+            is ApiResult.Success -> emit(PasteResult.Success(result.data))
+            is ApiResult.Error -> {
+                sessionManager.handleAuthError(result.message, result.code)
+                emit(PasteResult.Error(result.message, result.code))
+            }
+        }
+    }
+
+    override fun toggleFavorite(pasteId: String, makeFavorite: Boolean): Flow<PasteResult<Unit>> = flow {
+        emit(PasteResult.Loading)
+        val result = if (makeFavorite) rawApi.addToFavorites(pasteId) else rawApi.removeFromFavorites(pasteId)
+        when (result) {
+            is ApiResult.Success -> emit(PasteResult.Success(Unit))
+            is ApiResult.Error -> {
+                sessionManager.handleAuthError(result.message, result.code)
+                emit(PasteResult.Error(result.message, result.code))
+            }
+        }
+    }
+
+    override fun getMyPastesFavoriteOnly(token: String, page: Int, limit: Int): Flow<PasteResult<List<PasteDto>>> = flow {
+        emit(PasteResult.Loading)
+        when (val result = rawApi.getMyFavoritePastes(token, page, limit)) {
             is ApiResult.Success -> emit(PasteResult.Success(result.data))
             is ApiResult.Error -> {
                 sessionManager.handleAuthError(result.message, result.code)

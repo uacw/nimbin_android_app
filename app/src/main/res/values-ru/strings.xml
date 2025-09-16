@@ -67,6 +67,7 @@
     <string name="my_pastes_filter_private">Приватные</string>
     <string name="my_pastes_login_required">Для просмотра ваших заметок необходимо войти в систему</string>
     <string name="my_pastes_reset_filter">Сбросить фильтр</string>
+    <string name="my_pastes_filter_favorites">Избранные</string>
 
     <!-- Public Pastes Strings -->
     <string name="public_pastes_empty">Нет публичных заметок</string>
@@ -101,7 +102,7 @@
     <string name="register_confirm_password_label">Подтвердите пароль</string>
     <string name="register_button_text">Зарегистрироваться</string>
     <string name="register_go_to_login_text">Перейти ко входу</string>
-    <string name="register_successful_toast">Регистрация успешна!</string>
+    <string name="register_successful_toast">Регистр��ция успешна!</string>
     <string name="register_failed_toast_with_reason">Регистрация не удалась: %1$s</string>
 
     <!-- User Profile Strings -->
@@ -131,4 +132,8 @@
 
     <!-- Paste Detail: Edit Action -->
     <string name="paste_detail_edit_cd">Редактировать</string>
+
+    <!-- Favorites CD -->
+    <string name="paste_favorite_add_cd">Добавить в избранное</string>
+    <string name="paste_favorite_remove_cd">Убрать из избранного</string>
 </resources>

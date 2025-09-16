@@ -17,7 +17,7 @@ import tech.nimbus.shared.dto.PasteDto
 import tech.nimbus.shared.dto.PasteVisibility
 import javax.inject.Inject
 
-enum class MyPastesFilter { ALL, PUBLIC, UNLISTED, PRIVATE }
+enum class MyPastesFilter { ALL, PUBLIC, UNLISTED, PRIVATE, FAVORITES }
 
 data class MyPastesUiState(
     val items: List<PasteDto> = emptyList(),
@@ -72,14 +72,17 @@ class MyPastesViewModel @Inject constructor(
         loadJob?.cancel()
         val t = token ?: return
         loadJob = viewModelScope.launch {
-            pasteRepository.getUserPastes(t, page).collectLatest { result ->
+            val flow = when (uiState.filter) {
+                MyPastesFilter.FAVORITES -> pasteRepository.getMyPastesFavoriteOnly(t, page)
+                else -> pasteRepository.getUserPastes(t, page)
+            }
+            flow.collectLatest { result ->
                 when (result) {
                     is PasteResult.Loading -> {}
                     is PasteResult.Error -> {
                         uiState = if (append) {
                             uiState.copy(isLoadingMore = false, error = result.message)
                         } else {
-                            // Если ошибка авторизации произойдет, SessionManager уже отправит событие, а здесь просто снимем флаги
                             uiState.copy(
                                 tokenMissing = false,
                                 isRefreshing = false,
@@ -91,7 +94,7 @@ class MyPastesViewModel @Inject constructor(
                     }
                     is PasteResult.Success -> {
                         val newItems = if (append) uiState.items + result.data else result.data
-                        val filtered = applyFilter(newItems, uiState.filter)
+                        val filtered = if (uiState.filter == MyPastesFilter.FAVORITES) newItems else applyFilter(newItems, uiState.filter)
                         val endReached = result.data.isEmpty()
                         uiState = uiState.copy(
                             items = newItems,
@@ -110,8 +113,21 @@ class MyPastesViewModel @Inject constructor(
 
     fun setFilter(filter: MyPastesFilter) {
         if (uiState.filter == filter) return
-        val filtered = applyFilter(uiState.items, filter)
-        uiState = uiState.copy(filter = filter, filtered = filtered)
+        // If user selected Favorites but current session is guest - ignore (server does not support favorite filter for guest)
+        viewModelScope.launch {
+            if (filter == MyPastesFilter.FAVORITES) {
+                val guest = authRepository.isGuest().first()
+                if (guest) return@launch // ignore selecting Favorites in guest mode
+            }
+            uiState = uiState.copy(filter = filter)
+            // для FAVORITES — всегда тянем с сервера; для остальных — локальная фильтрация с текущими items
+            if (filter == MyPastesFilter.FAVORITES) {
+                refresh()
+            } else {
+                val filtered = applyFilter(uiState.items, filter)
+                uiState = uiState.copy(filtered = filtered)
+            }
+        }
     }
 
     private fun applyFilter(list: List<PasteDto>, filter: MyPastesFilter): List<PasteDto> = when (filter) {
@@ -119,5 +135,35 @@ class MyPastesViewModel @Inject constructor(
         MyPastesFilter.PUBLIC -> list.filter { it.visibility == PasteVisibility.PUBLIC }
         MyPastesFilter.UNLISTED -> list.filter { it.visibility == PasteVisibility.UNLISTED }
         MyPastesFilter.PRIVATE -> list.filter { it.visibility == PasteVisibility.PRIVATE }
+        MyPastesFilter.FAVORITES -> list // сетевой источник уже отфильтрован
+    }
+
+    fun toggleFavorite(pasteId: String, current: Boolean?) {
+        // Если isFavorite неизвестен (нет токена), ничего не делаем
+        val target = !(current ?: return)
+        // Оптимистичное обновление
+        val itemsUpd = uiState.items.map { if (it.id == pasteId) it.copy(isFavorite = target) else it }
+        var filteredUpd = uiState.filtered.map { if (it.id == pasteId) it.copy(isFavorite = target) else it }
+        // В режиме FAVORITES при снятии звезды — удаляем элемент из отображаемого списка
+        if (uiState.filter == MyPastesFilter.FAVORITES && !target) {
+            filteredUpd = filteredUpd.filter { it.id != pasteId }
+        }
+        uiState = uiState.copy(items = itemsUpd, filtered = filteredUpd)
+        viewModelScope.launch {
+            pasteRepository.toggleFavorite(pasteId, target).collectLatest { res ->
+                if (res is PasteResult.Error) {
+                    // Откат
+                    val rollback = !target
+                    val itemsRb = uiState.items.map { if (it.id == pasteId) it.copy(isFavorite = rollback) else it }
+                    var filteredRb = uiState.filtered.map { if (it.id == pasteId) it.copy(isFavorite = rollback) else it }
+                    if (uiState.filter == MyPastesFilter.FAVORITES && rollback == false) {
+                        // при откате обратно на true в режиме FAVORITES — вернём элемент? Не знаем позицию без перезагрузки, просто рефреш
+                        refresh()
+                        return@collectLatest
+                    }
+                    uiState = uiState.copy(items = itemsRb, filtered = filteredRb, error = res.message)
+                }
+            }
+        }
     }
 }

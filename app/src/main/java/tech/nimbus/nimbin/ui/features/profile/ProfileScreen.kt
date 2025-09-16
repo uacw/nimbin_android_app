@@ -13,6 +13,7 @@ import androidx.navigation.NavController
 import tech.nimbus.nimbin.R
 import tech.nimbus.nimbin.domain.repository.AuthResult
 import tech.nimbus.nimbin.ui.components.MainBottomNavBar
+import tech.nimbus.nimbin.ui.navigation.AuthScreen
 import tech.nimbus.nimbin.ui.navigation.Graph
 import tech.nimbus.nimbin.ui.navigation.MainAppScreen
 import tech.nimbus.shared.utils.ValidationUtils
@@ -53,6 +54,27 @@ fun ProfileScreen(navController: NavController, viewModel: ProfileViewModel = hi
                     is MyProfileUiState.Loading, MyProfileUiState.Idle, is MyProfileUiState.Updating -> {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             CircularProgressIndicator()
+                        }
+                    }
+                    is MyProfileUiState.Guest -> {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(stringResource(id = R.string.guest_mode_title), style = MaterialTheme.typography.titleLarge)
+                            Spacer(Modifier.height(8.dp))
+                            Text(stringResource(id = R.string.guest_mode_message), style = MaterialTheme.typography.bodyMedium)
+                            Spacer(Modifier.height(16.dp))
+                            Button(onClick = { navController.navigate(AuthScreen.Register.route) }) {
+                                Text(stringResource(id = R.string.guest_go_to_register))
+                            }
+                            Spacer(Modifier.height(8.dp))
+                            OutlinedButton(onClick = { navController.navigate(MainAppScreen.MyPastes.route) }) {
+                                Text(stringResource(id = R.string.profile_menu_my_pastes))
+                            }
                         }
                     }
                     is MyProfileUiState.Error -> {

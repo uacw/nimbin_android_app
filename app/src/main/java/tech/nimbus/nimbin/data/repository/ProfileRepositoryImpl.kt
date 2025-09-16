@@ -13,17 +13,19 @@ import tech.nimbus.shared.utils.ApiResult
 import javax.inject.Inject
 import javax.inject.Singleton
 import tech.nimbus.nimbin.core.session.SessionManager
+import tech.nimbus.nimbin.data.remote.NimbinApiClientImpl
 
 @Singleton
 class ProfileRepositoryImpl @Inject constructor(
     private val apiClient: NimbinApiClient,
-    private val sessionManager: SessionManager
+    private val sessionManager: SessionManager,
+    private val rawApi: NimbinApiClientImpl
 ) : ProfileRepository {
 
     override fun getMyProfile(token: String): Flow<ProfileResult<UserProfileDto>> = flow {
         emit(ProfileResult.Loading)
-        // Используем правильный API endpoint для получения своего профиля со статистикой
-        when (val result = apiClient.getMyProfile(token)) {
+        // Используем конкретную реализацию клиента, где есть getMyProfile
+        when (val result = rawApi.getMyProfile(token)) {
             is ApiResult.Success -> emit(ProfileResult.Success(result.data))
             is ApiResult.Error -> {
                 sessionManager.handleAuthError(result.message, result.code)

@@ -65,6 +65,7 @@
     <string name="my_pastes_filter_public">Public</string>
     <string name="my_pastes_filter_unlisted">Unlisted</string>
     <string name="my_pastes_filter_private">Private</string>
+    <string name="my_pastes_filter_favorites" translatable="false">Favorites</string>
     <string name="my_pastes_login_required">Login is required to view your pastes</string>
     <string name="my_pastes_reset_filter">Reset filter</string>
 
@@ -118,17 +119,27 @@
     <string name="create_note_fields_required">Title and content cannot be empty</string>
 
     <!-- Edit Paste Strings -->
-    <string name="edit_paste_title">Edit Note</string>
-    <string name="edit_paste_save_cd">Save</string>
-    <string name="edit_paste_save_button">Save</string>
-    <string name="edit_paste_syntax_label">Syntax language</string>
-    <string name="edit_paste_error">Error: %1$s</string>
-    <string name="edit_paste_success">Saved</string>
-    <string name="edit_paste_conflict_title">Version conflict</string>
-    <string name="edit_paste_conflict_message">This paste was updated elsewhere. Reload to get the latest version and try saving again.</string>
-    <string name="edit_paste_conflict_reload">Reload</string>
-    <string name="edit_paste_conflict_dismiss">Dismiss</string>
+    <string name="edit_paste_title" translatable="false">Edit Note</string>
+    <string name="edit_paste_save_cd" translatable="false">Save</string>
+    <string name="edit_paste_save_button" translatable="false">Save</string>
+    <string name="edit_paste_syntax_label" translatable="false">Syntax language</string>
+    <string name="edit_paste_error" translatable="false">Error: %1$s</string>
+    <string name="edit_paste_success" translatable="false">Saved</string>
+    <string name="edit_paste_conflict_title" translatable="false">Version conflict</string>
+    <string name="edit_paste_conflict_message" translatable="false">This paste was updated elsewhere. Reload to get the latest version and try saving again.</string>
+    <string name="edit_paste_conflict_reload" translatable="false">Reload</string>
+    <string name="edit_paste_conflict_dismiss" translatable="false">Dismiss</string>
 
     <!-- Paste Detail: Edit Action -->
-    <string name="paste_detail_edit_cd">Edit</string>
+    <string name="paste_detail_edit_cd" translatable="false">Edit</string>
+
+    <!-- Favorites CD -->
+    <string name="paste_favorite_add_cd" translatable="false">Add to favorites</string>
+    <string name="paste_favorite_remove_cd" translatable="false">Remove from favorites</string>
+
+    <!-- Auth / Guest Mode -->
+    <string name="login_continue_as_guest" translatable="false">Continue as guest</string>
+    <string name="guest_mode_title" translatable="false">Guest mode</string>
+    <string name="guest_mode_message" translatable="false">Some features are unavailable. Please register to continue.</string>
+    <string name="guest_go_to_register" translatable="false">Register</string>
 </resources>

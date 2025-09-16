@@ -26,7 +26,6 @@ fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    // val loginState by viewModel.loginState.collectAsState() // Не используется напрямую в UI, а через LaunchedEffect
 
     LaunchedEffect(key1 = viewModel.loginState) {
         viewModel.loginState?.let { result ->
@@ -41,10 +40,7 @@ fun LoginScreen(
                     val errorMessage = result.message ?: context.getString(R.string.login_error_occurred_default)
                     Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
                 }
-                is AuthResult.Loading -> {
-                    // Можно показать Toast или положиться на CircularProgressIndicator в UI
-                    // Toast.makeText(context, R.string.login_in_progress, Toast.LENGTH_SHORT).show()
-                }
+                is AuthResult.Loading -> {}
             }
         }
     }
@@ -119,6 +115,18 @@ fun LoginScreen(
                     style = MaterialTheme.typography.labelLarge
                 )
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedButton(
+                onClick = { viewModel.continueAsGuest() },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = viewModel.loginState !is AuthResult.Loading,
+                shape = MaterialTheme.shapes.medium,
+                contentPadding = PaddingValues(vertical = 12.dp)
+            ) {
+                Text(text = stringResource(id = R.string.login_continue_as_guest))
+            }
         }
     }
 }
@@ -127,7 +135,7 @@ fun LoginScreen(
 @Composable
 fun LoginScreenPreview() {
     // Для превью нужно передать NavController и, возможно, фейковый ViewModel
-    // или обернуть в тему Material
+    // или обернуть в ��ему Material
     MaterialTheme {
         LoginScreen(navController = rememberNavController())
     }

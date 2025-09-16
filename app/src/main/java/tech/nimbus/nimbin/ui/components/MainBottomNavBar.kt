@@ -14,6 +14,7 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -22,13 +23,18 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import tech.nimbus.nimbin.R
+import tech.nimbus.nimbin.ui.auth.AuthStatusViewModel
 import tech.nimbus.nimbin.ui.navigation.MainAppScreen
+import androidx.hilt.navigation.compose.hiltViewModel
 
 /**
- * Современная нижняя навигационная панель Material 3 с анимациями и улучшенным дизайном
+ * Современная нижняя навигационная пане��ь Material 3 с анимациями и улучшенным дизайном
  */
 @Composable
 fun MainBottomNavBar(navController: NavController) {
+    val authVM: AuthStatusViewModel = hiltViewModel()
+    val isGuest by authVM.isGuest.collectAsState()
+
     val items = listOf(
         ModernBottomNavItem(
             route = MainAppScreen.Home.route,
@@ -84,7 +90,9 @@ fun MainBottomNavBar(navController: NavController) {
                 selected = selected,
                 onClick = {
                     if (!selected) {
-                        navController.navigate(item.route) {
+                        // Ранее тут был редирект гостей на экран аутентификации. Теперь всегда ведем на целевой экран.
+                        val targetRoute = item.route
+                        navController.navigate(targetRoute) {
                             popUpTo(MainAppScreen.Home.route) { saveState = true }
                             launchSingleTop = true
                             restoreState = true

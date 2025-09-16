@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshotFlow
@@ -23,6 +24,7 @@ import androidx.navigation.NavController
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import tech.nimbus.nimbin.R
+import tech.nimbus.nimbin.ui.auth.AuthStatusViewModel
 import tech.nimbus.nimbin.ui.components.MainBottomNavBar
 import tech.nimbus.nimbin.ui.navigation.MainAppScreen
 import tech.nimbus.shared.dto.PasteDto
@@ -35,6 +37,9 @@ fun MyPastesScreen(
     viewModel: MyPastesViewModel = hiltViewModel()
 ) {
     val uiState = viewModel.uiState
+
+    val authStatus: AuthStatusViewModel = hiltViewModel()
+    val isGuest by authStatus.isGuest.collectAsState()
 
     val swipeRefreshState = rememberSwipeRefreshState(uiState.isRefreshing)
     val listState = rememberLazyListState()
@@ -70,7 +75,7 @@ fun MyPastesScreen(
                 uiState.filtered.isEmpty() -> EmptyFiltered(uiState.filter) { viewModel.setFilter(MyPastesFilter.ALL) }
                 else -> {
                     Column(Modifier.fillMaxSize()) {
-                        FilterRow(current = uiState.filter, onChange = viewModel::setFilter)
+                        FilterRow(current = uiState.filter, onChange = viewModel::setFilter, isGuest = isGuest)
                         Spacer(Modifier.height(8.dp))
                         LazyColumn(
                             modifier = Modifier.weight(1f),
@@ -82,7 +87,8 @@ fun MyPastesScreen(
                                 PasteCardSmall(
                                     paste,
                                     onClick = { navController.navigate(MainAppScreen.PasteDetail.build(paste.id)) },
-                                    onAuthor = { uid -> navController.navigate(MainAppScreen.UserProfile.build(uid)) }
+                                    onAuthor = { uid -> navController.navigate(MainAppScreen.UserProfile.build(uid)) },
+                                    onToggleFavorite = { id, current -> viewModel.toggleFavorite(id, current) }
                                 )
                             }
                             item {
@@ -139,7 +145,7 @@ private fun InlineError(message: String, retry: () -> Unit) {
 }
 
 @Composable
-private fun FilterRow(current: MyPastesFilter, onChange: (MyPastesFilter) -> Unit) {
+private fun FilterRow(current: MyPastesFilter, onChange: (MyPastesFilter) -> Unit, isGuest: Boolean) {
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
@@ -148,10 +154,12 @@ private fun FilterRow(current: MyPastesFilter, onChange: (MyPastesFilter) -> Uni
         contentPadding = PaddingValues(vertical = 8.dp)
     ) {
         items(MyPastesFilter.values()) { filter ->
+            val enabled = !(isGuest && filter == MyPastesFilter.FAVORITES)
             ModernFilterChip(
                 filter = filter,
                 selected = current == filter,
-                onClick = { onChange(filter) }
+                onClick = { if (enabled) onChange(filter) },
+                enabled = enabled
             )
         }
     }
@@ -162,17 +170,20 @@ private fun FilterRow(current: MyPastesFilter, onChange: (MyPastesFilter) -> Uni
 private fun ModernFilterChip(
     filter: MyPastesFilter,
     selected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    enabled: Boolean = true
 ) {
     val (label, icon) = when (filter) {
         MyPastesFilter.ALL -> stringResource(id = R.string.my_pastes_filter_all) to Icons.Default.List
         MyPastesFilter.PUBLIC -> stringResource(id = R.string.my_pastes_filter_public) to Icons.Default.Public
         MyPastesFilter.UNLISTED -> stringResource(id = R.string.my_pastes_filter_unlisted) to Icons.Default.Link
         MyPastesFilter.PRIVATE -> stringResource(id = R.string.my_pastes_filter_private) to Icons.Default.Lock
+        MyPastesFilter.FAVORITES -> stringResource(id = R.string.my_pastes_filter_favorites) to Icons.Default.Star
     }
 
     FilterChip(
         onClick = onClick,
+        enabled = enabled,
         label = {
             Text(
                 text = label,
@@ -195,7 +206,7 @@ private fun ModernFilterChip(
             selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
         ),
         border = FilterChipDefaults.filterChipBorder(
-            enabled = true,
+            enabled = enabled,
             selected = selected,
             borderColor = MaterialTheme.colorScheme.outline,
             selectedBorderColor = MaterialTheme.colorScheme.primaryContainer,
@@ -215,7 +226,12 @@ private fun EmptyFiltered(filter: MyPastesFilter, reset: () -> Unit) {
 }
 
 @Composable
-private fun PasteCardSmall(paste: PasteDto, onClick: () -> Unit, onAuthor: ((String) -> Unit)? = null) {
+private fun PasteCardSmall(
+    paste: PasteDto,
+    onClick: () -> Unit,
+    onAuthor: ((String) -> Unit)? = null,
+    onToggleFavorite: (pasteId: String, current: Boolean?) -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -240,7 +256,20 @@ private fun PasteCardSmall(paste: PasteDto, onClick: () -> Unit, onAuthor: ((Str
                 } else {
                     Spacer(Modifier.width(0.dp))
                 }
-                Text(visibilityLabel(paste.visibility), style = MaterialTheme.typography.labelSmall)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(
+                        onClick = { if (paste.isFavorite != null) onToggleFavorite(paste.id, paste.isFavorite) },
+                        modifier = Modifier.alpha(if (paste.isFavorite == null) 0.4f else 1f)
+                    ) {
+                        if (paste.isFavorite == true) {
+                            Icon(Icons.Default.Star, contentDescription = null)
+                        } else {
+                            Icon(Icons.Outlined.StarBorder, contentDescription = null)
+                        }
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Text(visibilityLabel(paste.visibility), style = MaterialTheme.typography.labelSmall)
+                }
             }
         }
     }

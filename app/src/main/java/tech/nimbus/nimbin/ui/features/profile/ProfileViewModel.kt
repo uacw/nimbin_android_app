@@ -6,27 +6,26 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import tech.nimbus.nimbin.R
+import tech.nimbus.nimbin.domain.repository.AuthRepository
 import tech.nimbus.nimbin.domain.repository.AuthResult
 import tech.nimbus.nimbin.domain.repository.ProfileResult
 import tech.nimbus.nimbin.domain.usecase.auth.ClearAuthTokenUseCase
 import tech.nimbus.nimbin.domain.usecase.auth.LogoutUseCase
 import tech.nimbus.nimbin.domain.usecase.profile.GetMyProfileUseCase
 import tech.nimbus.nimbin.domain.usecase.profile.UpdateProfileUseCase
-import tech.nimbus.nimbin.domain.repository.AuthRepository
 import tech.nimbus.nimbin.domain.utils.StringProvider
-import tech.nimbus.shared.dto.UserProfileDto
 import javax.inject.Inject
 
 sealed class MyProfileUiState {
     object Idle: MyProfileUiState()
     object Loading: MyProfileUiState()
-    data class Data(val profile: UserProfileDto): MyProfileUiState()
+    data class Data(val profile: tech.nimbus.shared.dto.UserProfileDto): MyProfileUiState()
     data class Error(val message: String): MyProfileUiState()
-    data class Updating(val profile: UserProfileDto): MyProfileUiState()
+    data class Updating(val profile: tech.nimbus.shared.dto.UserProfileDto): MyProfileUiState()
+    object Guest: MyProfileUiState()
 }
 
 @HiltViewModel
@@ -46,16 +45,31 @@ class ProfileViewModel @Inject constructor(
         private set
 
     private var token: String? = null
+    private var isGuest: Boolean = false
 
-    init { loadProfile() }
+    init {
+        // Следим за флагом гостя
+        viewModelScope.launch {
+            authRepository.isGuest().collectLatest { guest ->
+                isGuest = guest
+                // Если уже на экране профиля и гостевой режим включен — показать Guest UI
+                if (guest) profileState = MyProfileUiState.Guest
+            }
+        }
+        loadProfile()
+    }
 
     fun loadProfile() {
         viewModelScope.launch {
             profileState = MyProfileUiState.Loading
             token = authRepository.getAuthToken().first()
+            if (isGuest) {
+                profileState = MyProfileUiState.Guest
+                return@launch
+            }
             val t = token
             if (t.isNullOrBlank()) {
-                profileState = MyProfileUiState.Error(stringProvider.getString(R.string.error_not_authorized))
+                profileState = MyProfileUiState.Error(stringProvider.getString(tech.nimbus.nimbin.R.string.error_not_authorized))
                 return@launch
             }
             getMyProfileUseCase(t).collectLatest { res ->
@@ -93,8 +107,8 @@ class ProfileViewModel @Inject constructor(
                     is ProfileResult.Loading -> {}
                     is ProfileResult.Error -> {
                         val msg = when (res.code) {
-                            409 -> stringProvider.getString(R.string.error_username_taken)
-                            400 -> stringProvider.getString(R.string.error_profile_validation)
+                            409 -> stringProvider.getString(tech.nimbus.nimbin.R.string.error_username_taken)
+                            400 -> stringProvider.getString(tech.nimbus.nimbin.R.string.error_profile_validation)
                             else -> res.message
                         }
                         profileState = MyProfileUiState.Error(msg)

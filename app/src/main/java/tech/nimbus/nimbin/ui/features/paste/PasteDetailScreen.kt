@@ -6,6 +6,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -76,6 +78,15 @@ fun PasteDetailScreen(
                     IconButton(onClick = { refreshTrigger++ }) {
                         Icon(Icons.Default.Refresh, contentDescription = stringResource(id = R.string.paste_detail_refresh_cd))
                     }
+
+                    // Избранное
+                    val isFav = (state as? PasteResult.Success)?.data?.isFavorite
+                    if (isFav != null) {
+                        IconButton(onClick = { viewModel.toggleFavorite() }) {
+                            if (isFav) Icon(Icons.Default.Star, contentDescription = null) else Icon(Icons.Outlined.StarBorder, contentDescription = null)
+                        }
+                    }
+
                     // показываем Edit только владельцу
                     val canEdit = state is PasteResult.Success &&
                         (state as PasteResult.Success<PasteDto>).data.userId != null &&

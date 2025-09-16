@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -25,6 +26,7 @@ class UserPreferencesRepository @Inject constructor(@ApplicationContext private 
 
     private object PreferenceKeys {
         val AUTH_TOKEN = stringPreferencesKey("auth_token")
+        val IS_GUEST = booleanPreferencesKey("is_guest")
     }
 
     /**
@@ -34,6 +36,12 @@ class UserPreferencesRepository @Inject constructor(@ApplicationContext private 
         .map { preferences ->
             preferences[PreferenceKeys.AUTH_TOKEN]
         }
+
+    /**
+     * Flow emitting guest mode flag.
+     */
+    val isGuest: Flow<Boolean> = context.dataStore.data
+        .map { preferences -> preferences[PreferenceKeys.IS_GUEST] ?: false }
 
     /**
      * Saves the authentication token to DataStore.
@@ -51,6 +59,20 @@ class UserPreferencesRepository @Inject constructor(@ApplicationContext private 
     suspend fun clearAuthToken() {
         context.dataStore.edit { preferences ->
             preferences.remove(PreferenceKeys.AUTH_TOKEN)
+        }
+    }
+
+    /** Saves guest flag. */
+    suspend fun saveIsGuest(value: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferenceKeys.IS_GUEST] = value
+        }
+    }
+
+    /** Clears guest flag (sets to false). */
+    suspend fun clearIsGuest() {
+        context.dataStore.edit { preferences ->
+            preferences[PreferenceKeys.IS_GUEST] = false
         }
     }
 }

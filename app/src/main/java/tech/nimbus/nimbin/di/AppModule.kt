@@ -74,10 +74,16 @@ object AppModule {
     @Singleton
     fun provideTokenProvider(prefs: UserPreferencesRepository): TokenProvider = DataStoreTokenProvider(prefs)
 
+    // Экспонируем конкретную реализацию для расширенных методов (favorites)
     @Provides
     @Singleton
-    fun provideNimbinApiClient(client: HttpClient, config: ApiConfig, tokenProvider: TokenProvider): NimbinApiClient =
+    fun provideNimbinApiClientImpl(client: HttpClient, config: ApiConfig, tokenProvider: TokenProvider): NimbinApiClientImpl =
         NimbinApiClientImpl(client, config, tokenProvider)
+
+    // И интерфейс для мест, где нужна абстракция
+    @Provides
+    @Singleton
+    fun provideNimbinApiClient(impl: NimbinApiClientImpl): NimbinApiClient = impl
 
     @Provides
     @Singleton
