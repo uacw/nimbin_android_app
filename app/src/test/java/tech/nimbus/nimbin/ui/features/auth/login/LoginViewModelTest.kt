@@ -16,8 +16,8 @@ import tech.nimbus.nimbin.domain.repository.AuthResult
 import tech.nimbus.nimbin.domain.usecase.auth.LoginUseCase
 import tech.nimbus.nimbin.domain.usecase.auth.SaveAuthTokenUseCase
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import tech.nimbus.nimbin.domain.usecase.auth.ContinueAsGuestUseCase
 
 /**
  * Unit тесты для LoginViewModel.
@@ -29,6 +29,7 @@ class LoginViewModelTest {
 
     private lateinit var loginUseCase: LoginUseCase
     private lateinit var saveAuthTokenUseCase: SaveAuthTokenUseCase
+    private lateinit var continueAsGuestUseCase: ContinueAsGuestUseCase
     private lateinit var viewModel: LoginViewModel
 
     @Before
@@ -36,7 +37,8 @@ class LoginViewModelTest {
         Dispatchers.setMain(testDispatcher)
         loginUseCase = mock()
         saveAuthTokenUseCase = mock()
-        viewModel = LoginViewModel(loginUseCase, saveAuthTokenUseCase)
+        continueAsGuestUseCase = mock()
+        viewModel = LoginViewModel(loginUseCase, saveAuthTokenUseCase, continueAsGuestUseCase)
     }
 
     @After

@@ -9,7 +9,6 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import org.junit.Before
@@ -23,10 +22,6 @@ import tech.nimbus.nimbin.data.repository.AuthRepositoryImpl
 import tech.nimbus.nimbin.domain.repository.AuthResult
 import tech.nimbus.nimbin.domain.usecase.auth.LoginUseCase
 import tech.nimbus.shared.api.ApiConfig
-import tech.nimbus.shared.dto.AuthResponseDto
-import tech.nimbus.shared.dto.UserDto
-import tech.nimbus.shared.dto.request.LoginRequestDto
-import tech.nimbus.shared.utils.ApiResult
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 
@@ -52,7 +47,7 @@ class LayerIntegrationTest {
     }
 
     private fun createIntegratedLoginUseCase(responseJson: String, status: HttpStatusCode = HttpStatusCode.OK): LoginUseCase {
-        val mockEngine = MockEngine { request ->
+        val mockEngine = MockEngine { _ ->
             respond(
                 content = responseJson,
                 status = status,
@@ -108,9 +103,8 @@ class LayerIntegrationTest {
         // Given
         val email = "wrong@test.com"
         val password = "wrongpassword"
-        val errorMessage = "Invalid credentials"
 
-        val errorJson = """{"error": "$errorMessage"}"""
+        val errorJson = """{"error": "Invalid credentials"}"""
         val loginUseCase = createIntegratedLoginUseCase(errorJson, HttpStatusCode.Unauthorized)
 
         // When & Then
@@ -118,7 +112,7 @@ class LayerIntegrationTest {
             assertEquals(AuthResult.Loading, awaitItem())
             val errorResult = awaitItem()
             assertTrue(errorResult is AuthResult.Error)
-            assertEquals("Illegal input: Fields [token, user] are required for type with serial name 'tech.nimbus.shared.dto.AuthResponseDto', but they were missing at path: $", (errorResult as AuthResult.Error).message)
+            assertEquals("Token is not valid or has expired", (errorResult as AuthResult.Error).message)
             awaitComplete()
         }
     }
@@ -128,9 +122,8 @@ class LayerIntegrationTest {
         // Given
         val email = "test@example.com"
         val password = "password123"
-        val networkError = "Network timeout"
 
-        val errorJson = """{"error": "$networkError"}"""
+        val errorJson = """{"error": "Network timeout"}"""
         val loginUseCase = createIntegratedLoginUseCase(errorJson, HttpStatusCode.RequestTimeout)
 
         // When & Then
@@ -138,7 +131,7 @@ class LayerIntegrationTest {
             assertEquals(AuthResult.Loading, awaitItem())
             val errorResult = awaitItem()
             assertTrue(errorResult is AuthResult.Error)
-            assertEquals("Illegal input: Fields [token, user] are required for type with serial name 'tech.nimbus.shared.dto.AuthResponseDto', but they were missing at path: $", (errorResult as AuthResult.Error).message)
+            assertEquals("Network timeout", (errorResult as AuthResult.Error).message)
             awaitComplete()
         }
     }
@@ -148,9 +141,8 @@ class LayerIntegrationTest {
         // Given
         val email = "test@example.com"
         val password = "password123"
-        val serverError = "Internal server error"
 
-        val errorJson = """{"error": "$serverError"}"""
+        val errorJson = """{"error": "Internal server error"}"""
         val loginUseCase = createIntegratedLoginUseCase(errorJson, HttpStatusCode.InternalServerError)
 
         // When & Then
@@ -158,7 +150,7 @@ class LayerIntegrationTest {
             assertEquals(AuthResult.Loading, awaitItem())
             val errorResult = awaitItem()
             assertTrue(errorResult is AuthResult.Error)
-            assertEquals("Illegal input: Fields [token, user] are required for type with serial name 'tech.nimbus.shared.dto.AuthResponseDto', but they were missing at path: $", (errorResult as AuthResult.Error).message)
+            assertEquals("Internal server error", (errorResult as AuthResult.Error).message)
             awaitComplete()
         }
     }
@@ -177,7 +169,7 @@ class LayerIntegrationTest {
             assertEquals(AuthResult.Loading, awaitItem())
             val errorResult = awaitItem()
             assertTrue(errorResult is AuthResult.Error)
-            assertEquals("Illegal input: Unexpected JSON token at offset 31: Expected beginning of the string, but got } at path: $\nJSON input: {\"invalid\": \"json\", \"missing\": }", (errorResult as AuthResult.Error).message)
+            assertEquals("Serialization error", (errorResult as AuthResult.Error).message)
             awaitComplete()
         }
     }
@@ -203,9 +195,6 @@ class LayerIntegrationTest {
         """.trimIndent()
 
         val loginUseCase = createIntegratedLoginUseCase(responseJson)
-
-        // Mock preferences to verify token saving
-        whenever(preferencesRepository.saveAuthToken(token)).thenReturn(Unit)
 
         // When & Then
         loginUseCase(email, password).test {

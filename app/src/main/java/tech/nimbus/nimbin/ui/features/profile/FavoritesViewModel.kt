@@ -7,37 +7,33 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import tech.nimbus.nimbin.domain.repository.AuthRepository
 import tech.nimbus.nimbin.domain.repository.PasteRepository
 import tech.nimbus.nimbin.domain.repository.PasteResult
-import tech.nimbus.nimbin.domain.repository.AuthRepository
 import tech.nimbus.shared.dto.PasteDto
-import tech.nimbus.shared.dto.PasteVisibility
 import javax.inject.Inject
 
-enum class MyPastesFilter { ALL, PUBLIC, UNLISTED, PRIVATE }
 
-data class MyPastesUiState(
+data class FavoritesUiState(
     val items: List<PasteDto> = emptyList(),
-    val filtered: List<PasteDto> = emptyList(),
     val page: Int = 1,
     val isRefreshing: Boolean = false,
     val isLoadingMore: Boolean = false,
     val error: String? = null,
     val endReached: Boolean = false,
-    val filter: MyPastesFilter = MyPastesFilter.ALL,
     val tokenMissing: Boolean = false
 )
 
 @HiltViewModel
-class MyPastesViewModel @Inject constructor(
+class FavoritesViewModel @Inject constructor(
     private val pasteRepository: PasteRepository,
     private val authRepository: AuthRepository
-) : ViewModel() {
+): ViewModel() {
 
-    var uiState by mutableStateOf(MyPastesUiState())
+    var uiState by mutableStateOf(FavoritesUiState())
         private set
 
     private var loadJob: Job? = null
@@ -51,7 +47,7 @@ class MyPastesViewModel @Inject constructor(
             token = authRepository.getAuthToken().first()
             if (token.isNullOrBlank()) {
                 uiState = uiState.copy(
-                    items = emptyList(), filtered = emptyList(), tokenMissing = true,
+                    items = emptyList(), tokenMissing = true,
                     error = null, isRefreshing = false, page = 1, endReached = true
                 )
                 return@launch
@@ -72,8 +68,7 @@ class MyPastesViewModel @Inject constructor(
         loadJob?.cancel()
         val t = token ?: return
         loadJob = viewModelScope.launch {
-            val flow = pasteRepository.getUserPastes(t, page)
-            flow.collectLatest { result ->
+            pasteRepository.getMyPastesFavoriteOnly(t, page).collectLatest { result ->
                 when (result) {
                     is PasteResult.Loading -> {}
                     is PasteResult.Error -> {
@@ -84,18 +79,15 @@ class MyPastesViewModel @Inject constructor(
                                 tokenMissing = false,
                                 isRefreshing = false,
                                 error = result.message,
-                                items = emptyList(),
-                                filtered = emptyList()
+                                items = emptyList()
                             )
                         }
                     }
                     is PasteResult.Success -> {
                         val newItems = if (append) uiState.items + result.data else result.data
-                        val filtered = applyFilter(newItems, uiState.filter)
                         val endReached = result.data.isEmpty()
                         uiState = uiState.copy(
                             items = newItems,
-                            filtered = filtered,
                             page = page,
                             isRefreshing = false,
                             isLoadingMore = false,
@@ -108,39 +100,22 @@ class MyPastesViewModel @Inject constructor(
         }
     }
 
-    fun setFilter(filter: MyPastesFilter) {
-        if (uiState.filter == filter) return
-        viewModelScope.launch {
-            uiState = uiState.copy(filter = filter)
-            val filtered = applyFilter(uiState.items, filter)
-            uiState = uiState.copy(filtered = filtered)
-        }
-    }
-
-    private fun applyFilter(list: List<PasteDto>, filter: MyPastesFilter): List<PasteDto> = when (filter) {
-        MyPastesFilter.ALL -> list
-        MyPastesFilter.PUBLIC -> list.filter { it.visibility == PasteVisibility.PUBLIC }
-        MyPastesFilter.UNLISTED -> list.filter { it.visibility == PasteVisibility.UNLISTED }
-        MyPastesFilter.PRIVATE -> list.filter { it.visibility == PasteVisibility.PRIVATE }
-    }
-
     fun toggleFavorite(pasteId: String, current: Boolean?) {
-        // Трактуем null как false, чтобы в гостевом режиме можно было кликать
         val target = !(current ?: false)
-        // Оптимистичное обновление
         val itemsUpd = uiState.items.map { if (it.id == pasteId) it.copy(isFavorite = target) else it }
-        val filteredUpd = uiState.filtered.map { if (it.id == pasteId) it.copy(isFavorite = target) else it }
-        uiState = uiState.copy(items = itemsUpd, filtered = filteredUpd)
+        uiState = uiState.copy(items = itemsUpd)
         viewModelScope.launch {
             pasteRepository.toggleFavorite(pasteId, target).collectLatest { res ->
                 if (res is PasteResult.Error) {
-                    // Откат
                     val rollback = !target
                     val itemsRb = uiState.items.map { if (it.id == pasteId) it.copy(isFavorite = rollback) else it }
-                    val filteredRb = uiState.filtered.map { if (it.id == pasteId) it.copy(isFavorite = rollback) else it }
-                    uiState = uiState.copy(items = itemsRb, filtered = filteredRb, error = res.message)
+                    uiState = uiState.copy(items = itemsRb, error = res.message)
+                } else if (target == false) {
+                    // Если сняли из избранного — удаляем из списка
+                    uiState = uiState.copy(items = uiState.items.filter { it.id != pasteId })
                 }
             }
         }
     }
 }
+

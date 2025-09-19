@@ -14,6 +14,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import tech.nimbus.nimbin.R
 import tech.nimbus.nimbin.domain.repository.AuthResult
+import tech.nimbus.nimbin.ui.navigation.Graph
 
 /**
  * Composable function for the Register Screen.
@@ -34,7 +35,11 @@ fun RegisterScreen(
         when (state) {
             is AuthResult.Success -> {
                 Toast.makeText(context, context.getString(R.string.register_successful_toast), Toast.LENGTH_SHORT).show()
-                navController.popBackStack()
+                // После успешной регистрации у нас уже сохранён токен и снят флаг гостя – переходим в основное приложение
+                navController.navigate(Graph.MAIN_APP) {
+                    popUpTo(Graph.ROOT) { inclusive = true }
+                    launchSingleTop = true
+                }
             }
             is AuthResult.Error -> {
                 Toast.makeText(context, context.getString(R.string.register_failed_toast_with_reason, state.message), Toast.LENGTH_LONG).show()

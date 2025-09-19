@@ -32,10 +32,11 @@ class PasteDetailViewModel @Inject constructor(
         private set
 
     init {
-        // Загрузим текущего пользователя один раз
+        // Загрузим текущего пользователя один раз (только если сессия не гостевая)
         viewModelScope.launch {
             val token = authRepository.getAuthToken().first()
-            if (!token.isNullOrBlank()) {
+            val isGuest = authRepository.isGuest().first()
+            if (!token.isNullOrBlank() && !isGuest) {
                 getMyProfileUseCase(token).collectLatest { res ->
                     if (res is tech.nimbus.nimbin.domain.repository.ProfileResult.Success) {
                         currentUserId = res.data.user.id

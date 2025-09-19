@@ -26,6 +26,16 @@ interface NimbinApiClient {
     suspend fun getPaste(id: String): ApiResult<PasteDto>
     
     /**
+     * Обновить заметку по ID с проверкой ETag
+     */
+    suspend fun updatePaste(id: String, request: UpdatePasteRequestDto, ifMatchEtag: String): ApiResult<PasteDto>
+
+    /**
+     * Справочник поддерживаемых языков синтаксиса
+     */
+    suspend fun getSyntaxLanguages(): ApiResult<List<String>>
+
+    /**
      * Получить публичные заметки с пагинацией
      */
     suspend fun getPublicPastes(
@@ -47,6 +57,11 @@ interface NimbinApiClient {
      */
     suspend fun deletePaste(token: String, id: String): ApiResult<DeleteResponseDto>
     
+    // === Favorites ===
+    suspend fun addToFavorites(pasteId: String): ApiResult<Unit>
+    suspend fun removeFromFavorites(pasteId: String): ApiResult<Unit>
+    suspend fun getMyFavoritePastes(token: String, page: Int, limit: Int): ApiResult<List<PasteDto>>
+
     // === Authentication ===
     
     /**
@@ -58,7 +73,12 @@ interface NimbinApiClient {
      * Вход в систему
      */
     suspend fun login(request: LoginRequestDto): ApiResult<AuthResponseDto>
-    
+
+    /**
+     * Гостевая аутентификация (возвращает JWT с claim guestId)
+     */
+    suspend fun guestAuth(): ApiResult<AuthResponseDto>
+
     /**
      * Получить информацию о текущем пользователе
      */
@@ -66,6 +86,11 @@ interface NimbinApiClient {
     
     // === User Profile ===
     
+    /**
+     * Получить профиль текущего пользователя (требует авторизации)
+     */
+    suspend fun getMyProfile(token: String): ApiResult<UserProfileDto>
+
     /**
      * Получить профиль пользователя по ID
      */

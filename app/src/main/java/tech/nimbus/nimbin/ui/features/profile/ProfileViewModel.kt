@@ -52,7 +52,6 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             authRepository.isGuest().collectLatest { guest ->
                 isGuest = guest
-                // Если уже на экране профиля и гостевой режим включен — показать Guest UI
                 if (guest) profileState = MyProfileUiState.Guest
             }
         }
@@ -62,6 +61,8 @@ class ProfileViewModel @Inject constructor(
     fun loadProfile() {
         viewModelScope.launch {
             profileState = MyProfileUiState.Loading
+            // Синхронно проверяем актуальный флаг гостя, чтобы не дергать профиль с гостевым токеном
+            isGuest = authRepository.isGuest().first()
             token = authRepository.getAuthToken().first()
             if (isGuest) {
                 profileState = MyProfileUiState.Guest

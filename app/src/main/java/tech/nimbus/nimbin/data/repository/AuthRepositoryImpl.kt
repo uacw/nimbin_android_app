@@ -12,13 +12,11 @@ import tech.nimbus.shared.utils.ApiResult
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
-import tech.nimbus.nimbin.data.remote.NimbinApiClientImpl
 
 @Singleton
 class AuthRepositoryImpl @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val apiClient: NimbinApiClient,
-    private val rawApi: NimbinApiClientImpl
+    private val apiClient: NimbinApiClient
 ) : AuthRepository {
 
     override fun login(email: String, password: String): Flow<AuthResult<String>> = flow {
@@ -69,7 +67,7 @@ class AuthRepositoryImpl @Inject constructor(
 
     override fun continueAsGuest(): Flow<AuthResult<String>> = flow {
         emit(AuthResult.Loading)
-        when (val result = rawApi.guestAuth()) {
+        when (val result = apiClient.guestAuth()) {
             is ApiResult.Success -> {
                 val token = result.data.token
                 userPreferencesRepository.saveAuthToken(token)

@@ -286,15 +286,12 @@ class NimbinApiClientImpl(
         if (etag != null && dto.etag != etag) dto.copy(etag = etag) else dto
     }
 
-    // НЕ override: метод вне интерфейса shared
-    suspend fun updatePaste(id: String, request: UpdatePasteRequestDto, ifMatchEtag: String): ApiResult<PasteDto> = safe {
+    override suspend fun updatePaste(id: String, request: UpdatePasteRequestDto, ifMatchEtag: String): ApiResult<PasteDto> = safe {
         val response = client.put {
             url(full(ApiEndpoints.pasteById(id)))
             contentType(ContentType.Application.Json)
             addAuthIfPresent(this)
-            headers {
-                append("If-Match", ifMatchEtag)
-            }
+            headers { append("If-Match", ifMatchEtag) }
             setBody(request)
         }
         val raw = response.bodyAsText()
@@ -321,8 +318,7 @@ class NimbinApiClientImpl(
         }.body()
     }
 
-    // НЕ override: метод вне интерфейса shared
-    suspend fun getSyntaxLanguages(): ApiResult<List<String>> = safe {
+    override suspend fun getSyntaxLanguages(): ApiResult<List<String>> = safe {
         client.get { url(full("/api/utils/syntax-languages")) }.body()
     }
 
@@ -337,15 +333,39 @@ class NimbinApiClientImpl(
         }.body()
     }
 
-    override suspend fun login(request: LoginRequestDto): ApiResult<AuthResponseDto> = safe {
-        client.post {
-            url(full(ApiEndpoints.LOGIN))
-            contentType(ContentType.Application.Json)
-            setBody(request)
-        }.body()
+    override suspend fun login(request: LoginRequestDto): ApiResult<AuthResponseDto> {
+        return try {
+            val response = client.post {
+                url(full(ApiEndpoints.LOGIN))
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }
+            val raw = response.bodyAsText()
+            val status = response.status.value
+            if (status >= 400) {
+                val msg = extractErrorMessage(raw) ?: raw
+                if (status == 401 || status == 403 ||
+                    msg.contains("Token is not valid", ignoreCase = true) ||
+                    msg.contains("token expired", ignoreCase = true)
+                ) {
+                    ApiResult.Error("Token is not valid or has expired", status)
+                } else {
+                    ApiResult.Error(msg, status)
+                }
+            } else {
+                val data = json.decodeFromString(AuthResponseDto.serializer(), raw)
+                ApiResult.Success(data)
+            }
+        } catch (e: SerializationException) {
+            Timber.e(e, "Serialization error: ${'$'}{e.message}")
+            ApiResult.Error("Serialization error", null)
+        } catch (e: Exception) {
+            Timber.e(e, "Network/general error")
+            ApiResult.Error(e.message ?: "Сетевая ошибка", null)
+        }
     }
 
-    suspend fun guestAuth(): ApiResult<AuthResponseDto> = safe {
+    override suspend fun guestAuth(): ApiResult<AuthResponseDto> = safe {
         client.post {
             url(full("/api/auth/guest"))
             contentType(ContentType.Application.Json)
@@ -369,9 +389,7 @@ class NimbinApiClientImpl(
         throw SerializationException("Не удалось распарсить пользователя: $raw")
     }
 
-    // === PROFILE ===
-    // НЕ override: метод вне и��терфейса shared
-    suspend fun getMyProfile(token: String): ApiResult<UserProfileDto> = safe {
+    override suspend fun getMyProfile(token: String): ApiResult<UserProfileDto> = safe {
         val response = client.get {
             url(full(ApiEndpoints.USER_PROFILE))
             addAuthIfPresent(this, token)
@@ -409,8 +427,7 @@ class NimbinApiClientImpl(
         client.get { url(full(ApiEndpoints.userPublicPastes(userId, page, limit))) }.body()
     }
 
-    // === FAVORITES ===
-    suspend fun addToFavorites(pasteId: String): ApiResult<Unit> = safe {
+    override suspend fun addToFavorites(pasteId: String): ApiResult<Unit> = safe {
         client.post {
             url(full(ApiEndpoints.pasteById(pasteId) + "/favorite"))
             addAuthIfPresent(this)
@@ -418,7 +435,7 @@ class NimbinApiClientImpl(
         Unit
     }
 
-    suspend fun removeFromFavorites(pasteId: String): ApiResult<Unit> = safe {
+    override suspend fun removeFromFavorites(pasteId: String): ApiResult<Unit> = safe {
         client.delete {
             url(full(ApiEndpoints.pasteById(pasteId) + "/favorite"))
             addAuthIfPresent(this)
@@ -426,7 +443,7 @@ class NimbinApiClientImpl(
         Unit
     }
 
-    suspend fun getMyFavoritePastes(token: String, page: Int, limit: Int): ApiResult<List<PasteDto>> = safe {
+    override suspend fun getMyFavoritePastes(token: String, page: Int, limit: Int): ApiResult<List<PasteDto>> = safe {
         client.get {
             url(full(ApiEndpoints.userPastes(page, limit) + "&favorite=true"))
             addAuthIfPresent(this, token)

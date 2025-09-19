@@ -75,6 +75,10 @@ fun ProfileScreen(navController: NavController, viewModel: ProfileViewModel = hi
                             OutlinedButton(onClick = { navController.navigate(MainAppScreen.MyPastes.route) }) {
                                 Text(stringResource(id = R.string.profile_menu_my_pastes))
                             }
+                            Spacer(Modifier.height(8.dp))
+                            OutlinedButton(onClick = { navController.navigate(MainAppScreen.Favorites.route) }) {
+                                Text(stringResource(id = R.string.profile_menu_favorites))
+                            }
                         }
                     }
                     is MyProfileUiState.Error -> {
@@ -112,6 +116,7 @@ fun ProfileScreen(navController: NavController, viewModel: ProfileViewModel = hi
                             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 Button(onClick = { showEdit = true }) { Text(stringResource(id = R.string.profile_menu_edit_profile)) }
                                 OutlinedButton(onClick = { navController.navigate(MainAppScreen.MyPastes.route) }) { Text(stringResource(id = R.string.profile_menu_my_pastes)) }
+                                OutlinedButton(onClick = { navController.navigate(MainAppScreen.Favorites.route) }) { Text(stringResource(id = R.string.profile_menu_favorites)) }
                             }
                         }
                     }

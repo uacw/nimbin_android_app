@@ -24,7 +24,6 @@ import androidx.navigation.NavController
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import tech.nimbus.nimbin.R
-import tech.nimbus.nimbin.ui.auth.AuthStatusViewModel
 import tech.nimbus.nimbin.ui.components.MainBottomNavBar
 import tech.nimbus.nimbin.ui.navigation.MainAppScreen
 import tech.nimbus.shared.dto.PasteDto
@@ -37,9 +36,6 @@ fun MyPastesScreen(
     viewModel: MyPastesViewModel = hiltViewModel()
 ) {
     val uiState = viewModel.uiState
-
-    val authStatus: AuthStatusViewModel = hiltViewModel()
-    val isGuest by authStatus.isGuest.collectAsState()
 
     val swipeRefreshState = rememberSwipeRefreshState(uiState.isRefreshing)
     val listState = rememberLazyListState()
@@ -75,7 +71,7 @@ fun MyPastesScreen(
                 uiState.filtered.isEmpty() -> EmptyFiltered(uiState.filter) { viewModel.setFilter(MyPastesFilter.ALL) }
                 else -> {
                     Column(Modifier.fillMaxSize()) {
-                        FilterRow(current = uiState.filter, onChange = viewModel::setFilter, isGuest = isGuest)
+                        FilterRow(current = uiState.filter, onChange = viewModel::setFilter)
                         Spacer(Modifier.height(8.dp))
                         LazyColumn(
                             modifier = Modifier.weight(1f),
@@ -145,7 +141,7 @@ private fun InlineError(message: String, retry: () -> Unit) {
 }
 
 @Composable
-private fun FilterRow(current: MyPastesFilter, onChange: (MyPastesFilter) -> Unit, isGuest: Boolean) {
+private fun FilterRow(current: MyPastesFilter, onChange: (MyPastesFilter) -> Unit) {
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
@@ -154,12 +150,11 @@ private fun FilterRow(current: MyPastesFilter, onChange: (MyPastesFilter) -> Uni
         contentPadding = PaddingValues(vertical = 8.dp)
     ) {
         items(MyPastesFilter.values()) { filter ->
-            val enabled = !(isGuest && filter == MyPastesFilter.FAVORITES)
             ModernFilterChip(
                 filter = filter,
                 selected = current == filter,
-                onClick = { if (enabled) onChange(filter) },
-                enabled = enabled
+                onClick = { onChange(filter) },
+                enabled = true
             )
         }
     }
@@ -178,7 +173,6 @@ private fun ModernFilterChip(
         MyPastesFilter.PUBLIC -> stringResource(id = R.string.my_pastes_filter_public) to Icons.Default.Public
         MyPastesFilter.UNLISTED -> stringResource(id = R.string.my_pastes_filter_unlisted) to Icons.Default.Link
         MyPastesFilter.PRIVATE -> stringResource(id = R.string.my_pastes_filter_private) to Icons.Default.Lock
-        MyPastesFilter.FAVORITES -> stringResource(id = R.string.my_pastes_filter_favorites) to Icons.Default.Star
     }
 
     FilterChip(
@@ -246,8 +240,8 @@ private fun PasteCardSmall(
             Spacer(Modifier.height(4.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 val authorLabel = when {
-                    paste.authorDisplayName != null -> paste.authorDisplayName + (if (paste.authorUsername != null) " (@${paste.authorUsername})" else "")
-                    paste.authorUsername != null -> "@${paste.authorUsername}"
+                    paste.authorDisplayName != null -> paste.authorDisplayName + (if (paste.authorUsername != null) " (@${'$'}{paste.authorUsername})" else "")
+                    paste.authorUsername != null -> "@${'$'}{paste.authorUsername}"
                     else -> null
                 }
                 val uid = paste.userId
@@ -258,7 +252,7 @@ private fun PasteCardSmall(
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(
-                        onClick = { if (paste.isFavorite != null) onToggleFavorite(paste.id, paste.isFavorite) },
+                        onClick = { onToggleFavorite(paste.id, paste.isFavorite) },
                         modifier = Modifier.alpha(if (paste.isFavorite == null) 0.4f else 1f)
                     ) {
                         if (paste.isFavorite == true) {

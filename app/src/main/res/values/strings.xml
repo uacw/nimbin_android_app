@@ -44,6 +44,7 @@
     <string name="profile_logout">Logout</string>
     <string name="profile_menu_edit_profile">Edit profile</string>
     <string name="profile_menu_my_pastes">My pastes</string>
+    <string name="profile_menu_favorites">Favorites</string>
     <string name="profile_retry">Retry</string>
     <string name="profile_public_only_count">Public: %1$d</string>
     <string name="profile_total_pastes_count">Total: %1$d</string>
@@ -65,9 +66,15 @@
     <string name="my_pastes_filter_public">Public</string>
     <string name="my_pastes_filter_unlisted">Unlisted</string>
     <string name="my_pastes_filter_private">Private</string>
-    <string name="my_pastes_filter_favorites" translatable="false">Favorites</string>
     <string name="my_pastes_login_required">Login is required to view your pastes</string>
     <string name="my_pastes_reset_filter">Reset filter</string>
+
+    <!-- Favorites Screen Strings -->
+    <string name="favorites_title">Favorites</string>
+    <string name="favorites_empty">No favorites yet</string>
+    <string name="favorites_error">Error: %1$s</string>
+    <string name="favorites_retry">Retry</string>
+    <string name="favorites_login_required">Login is required to view favorites</string>
 
     <!-- Public Pastes Strings -->
     <string name="public_pastes_empty">No public pastes</string>
