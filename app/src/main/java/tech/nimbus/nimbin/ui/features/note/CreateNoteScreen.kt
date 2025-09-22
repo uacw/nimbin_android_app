@@ -7,7 +7,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -17,6 +16,8 @@ import tech.nimbus.nimbin.ui.components.MainBottomNavBar
 import tech.nimbus.nimbin.domain.repository.PasteResult
 import tech.nimbus.shared.dto.PasteVisibility
 import kotlinx.coroutines.delay
+import tech.nimbus.nimbin.ui.components.CodeEditor
+import tech.nimbus.nimbin.ui.components.CodeLangMapper
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,7 +32,6 @@ fun CreateNoteScreen(
     val syntaxLanguage = viewModel.syntaxLanguage
     val languagesState = viewModel.languagesState
     val syntaxLanguages = viewModel.syntaxLanguages
-    val context = LocalContext.current
 
     var dropdownExpanded by remember { mutableStateOf(false) }
     var syntaxExpanded by remember { mutableStateOf(false) }
@@ -64,14 +64,20 @@ fun CreateNoteScreen(
                 singleLine = true
             )
             Spacer(modifier = Modifier.height(12.dp))
-            OutlinedTextField(
-                value = content,
-                onValueChange = viewModel::onContentChange,
-                label = { Text(stringResource(id = R.string.note_content_label)) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp)
-            )
+            // Replaced content input with CodeEditor
+            Text(text = stringResource(id = R.string.note_content_label), style = MaterialTheme.typography.labelLarge)
+            Spacer(modifier = Modifier.height(6.dp))
+            Box(modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+            ) {
+                CodeEditor(
+                    value = content,
+                    onValueChange = viewModel::onContentChange,
+                    language = CodeLangMapper.fromString(syntaxLanguage),
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
             Spacer(modifier = Modifier.height(12.dp))
 
             // Visibility dropdown
@@ -93,7 +99,7 @@ fun CreateNoteScreen(
                     expanded = dropdownExpanded,
                     onDismissRequest = { dropdownExpanded = false }
                 ) {
-                    PasteVisibility.values().forEach { v ->
+                    PasteVisibility.entries.forEach { v ->
                         DropdownMenuItem(
                             text = { Text(visibilityLabel(v)) },
                             onClick = {

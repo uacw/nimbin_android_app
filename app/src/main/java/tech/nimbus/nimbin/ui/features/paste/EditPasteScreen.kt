@@ -2,7 +2,7 @@ package tech.nimbus.nimbin.ui.features.paste
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,6 +15,8 @@ import androidx.navigation.NavController
 import tech.nimbus.nimbin.R
 import tech.nimbus.nimbin.domain.repository.PasteResult
 import tech.nimbus.shared.dto.PasteVisibility
+import tech.nimbus.nimbin.ui.components.CodeEditor
+import tech.nimbus.nimbin.ui.components.CodeLangMapper
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,7 +63,7 @@ fun EditPasteScreen(
                 title = { Text(stringResource(id = R.string.edit_paste_title)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(id = R.string.paste_detail_nav_back_cd))
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(id = R.string.paste_detail_nav_back_cd))
                     }
                 },
                 actions = {
@@ -69,7 +71,7 @@ fun EditPasteScreen(
                         if (saveState is PasteResult.Loading) {
                             CircularProgressIndicator(modifier = Modifier.size(ButtonDefaults.IconSize))
                         } else {
-                            Icon(Icons.Default.Check, contentDescription = stringResource(id = R.string.edit_paste_save_cd))
+                            Icon(Icons.Filled.Check, contentDescription = stringResource(id = R.string.edit_paste_save_cd))
                         }
                     }
                 }
@@ -89,7 +91,7 @@ fun EditPasteScreen(
                 is PasteResult.Success, null -> {
                     Column(
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .fillMaxSize()
                             .padding(16.dp),
                         verticalArrangement = Arrangement.Top
                     ) {
@@ -101,14 +103,21 @@ fun EditPasteScreen(
                             singleLine = true
                         )
                         Spacer(Modifier.height(12.dp))
-                        OutlinedTextField(
-                            value = viewModel.content,
-                            onValueChange = viewModel::onContentChange,
-                            label = { Text(stringResource(id = R.string.note_content_label)) },
+                        // Replace content input with CodeEditor
+                        Text(text = stringResource(id = R.string.note_content_label), style = MaterialTheme.typography.labelLarge)
+                        Spacer(Modifier.height(6.dp))
+                        Box(
                             modifier = Modifier
+                                .weight(1f)
                                 .fillMaxWidth()
-                                .height(180.dp)
-                        )
+                        ) {
+                            CodeEditor(
+                                value = viewModel.content,
+                                onValueChange = viewModel::onContentChange,
+                                language = CodeLangMapper.fromString(syntaxLanguage),
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
                         Spacer(Modifier.height(12.dp))
 
                         // Visibility dropdown
@@ -130,7 +139,7 @@ fun EditPasteScreen(
                                 expanded = visibilityExpanded,
                                 onDismissRequest = { visibilityExpanded = false }
                             ) {
-                                PasteVisibility.values().forEach { v ->
+                                PasteVisibility.entries.forEach { v ->
                                     DropdownMenuItem(
                                         text = { Text(visibilityLabel(v)) },
                                         onClick = {

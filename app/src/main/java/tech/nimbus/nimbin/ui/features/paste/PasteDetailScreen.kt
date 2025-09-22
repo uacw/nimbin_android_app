@@ -3,7 +3,7 @@ package tech.nimbus.nimbin.ui.features.paste
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Star
@@ -29,6 +29,8 @@ import tech.nimbus.nimbin.R
 import tech.nimbus.nimbin.domain.repository.PasteResult
 import tech.nimbus.shared.dto.PasteDto
 import tech.nimbus.nimbin.ui.navigation.MainAppScreen
+import tech.nimbus.nimbin.ui.components.CodeEditor
+import tech.nimbus.nimbin.ui.components.CodeLangMapper
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,29 +73,27 @@ fun PasteDetailScreen(
                 }) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(id = R.string.paste_detail_nav_back_cd))
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(id = R.string.paste_detail_nav_back_cd))
                     }
                 },
                 actions = {
                     IconButton(onClick = { refreshTrigger++ }) {
-                        Icon(Icons.Default.Refresh, contentDescription = stringResource(id = R.string.paste_detail_refresh_cd))
+                        Icon(Icons.Filled.Refresh, contentDescription = stringResource(id = R.string.paste_detail_refresh_cd))
                     }
 
                     // Избранное
                     val isFav = (state as? PasteResult.Success)?.data?.isFavorite
                     if (isFav != null) {
                         IconButton(onClick = { viewModel.toggleFavorite() }) {
-                            if (isFav) Icon(Icons.Default.Star, contentDescription = null) else Icon(Icons.Outlined.StarBorder, contentDescription = null)
+                            if (isFav) Icon(Icons.Filled.Star, contentDescription = null) else Icon(Icons.Outlined.StarBorder, contentDescription = null)
                         }
                     }
 
                     // показываем Edit только владельцу
-                    val canEdit = state is PasteResult.Success &&
-                        (state as PasteResult.Success<PasteDto>).data.userId != null &&
-                        (state as PasteResult.Success<PasteDto>).data.userId == viewModel.currentUserId
+                    val canEdit = (state as? PasteResult.Success<PasteDto>)?.data?.userId == viewModel.currentUserId
                     if (canEdit) {
                         IconButton(onClick = { navController.navigate(MainAppScreen.EditPaste.build(pasteId)) }) {
-                            Icon(Icons.Default.Edit, contentDescription = stringResource(id = R.string.paste_detail_edit_cd))
+                            Icon(Icons.Filled.Edit, contentDescription = stringResource(id = R.string.paste_detail_edit_cd))
                         }
                     }
                 }
@@ -103,7 +103,7 @@ fun PasteDetailScreen(
         Box(Modifier.fillMaxSize().padding(padding).padding(16.dp)) {
             when (state) {
                 is PasteResult.Loading -> {
-                    CircularProgressIndicator(Modifier.align(androidx.compose.ui.Alignment.Center))
+                    CircularProgressIndicator(Modifier.align(Alignment.Center))
                 }
                 is PasteResult.Error -> {
                     Column(Modifier.fillMaxWidth()) {
@@ -117,7 +117,7 @@ fun PasteDetailScreen(
                     if (pasteId.isBlank()) {
                         Text(stringResource(id = R.string.paste_detail_id_blank), color = MaterialTheme.colorScheme.error)
                     } else {
-                        CircularProgressIndicator(Modifier.align(androidx.compose.ui.Alignment.Center))
+                        CircularProgressIndicator(Modifier.align(Alignment.Center))
                     }
                 }
             }
@@ -152,10 +152,19 @@ private fun PasteContent(paste: PasteDto, navController: NavController) {
         Spacer(Modifier.height(4.dp))
         Text(text = stringResource(id = R.string.paste_detail_views, paste.viewCount), style = MaterialTheme.typography.labelSmall)
         Spacer(Modifier.height(4.dp))
-        Text(text = "Syntax: ${paste.syntaxLanguage}", style = MaterialTheme.typography.labelSmall) // добавлено
+        Text(text = "Syntax: ${paste.syntaxLanguage}", style = MaterialTheme.typography.labelSmall)
         Spacer(Modifier.height(16.dp))
-        Divider()
+        HorizontalDivider()
         Spacer(Modifier.height(16.dp))
-        Text(paste.content, style = MaterialTheme.typography.bodyMedium)
+        // Code viewer area
+        CodeEditor(
+            value = paste.content,
+            onValueChange = {},
+            language = CodeLangMapper.fromString(paste.syntaxLanguage),
+            readOnly = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        )
     }
 }

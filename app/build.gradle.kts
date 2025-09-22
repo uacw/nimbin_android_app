@@ -218,4 +218,7 @@ dependencies {
 
     // Ktor logging
     implementation("io.ktor:ktor-client-logging:${libs.versions.ktor.get()}")
+
+    // Code editor (Compose)
+    implementation("com.github.qawaz:compose-code-editor:2.0.3")
 }
